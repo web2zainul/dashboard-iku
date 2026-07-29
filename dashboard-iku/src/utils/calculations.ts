@@ -1,0 +1,174 @@
+import type { IKUData, KategoriCapaian, DistributionItem, KPIResult } from '../types';
+
+export function getKategori(persentase: number): KategoriCapaian {
+  if (persentase >= 90) return 'Sangat Baik';
+  if (persentase >= 75) return 'Baik';
+  if (persentase >= 50) return 'Cukup';
+  return 'Kurang';
+}
+
+export function getKategoriColor(k: KategoriCapaian): string {
+  switch (k) {
+    case 'Sangat Baik': return '#10b981';
+    case 'Baik': return '#3b82f6';
+    case 'Cukup': return '#f59e0b';
+    case 'Kurang': return '#ef4444';
+  }
+}
+
+export function getKategoriBgColor(k: KategoriCapaian): string {
+  switch (k) {
+    case 'Sangat Baik': return '#ecfdf5';
+    case 'Baik': return '#eff6ff';
+    case 'Cukup': return '#fffbeb';
+    case 'Kurang': return '#fef2f2';
+  }
+}
+
+export function getKategoriTextColor(k: KategoriCapaian): string {
+  switch (k) {
+    case 'Sangat Baik': return '#065f46';
+    case 'Baik': return '#1e40af';
+    case 'Cukup': return '#92400e';
+    case 'Kurang': return '#991b1b';
+  }
+}
+
+export function getStatusText(persentase: number): string {
+  if (persentase >= 90) return 'Sangat Baik';
+  if (persentase >= 75) return 'Baik';
+  if (persentase >= 50) return 'Cukup';
+  return 'Kurang';
+}
+
+export function formatRupiah(val: number): string {
+  if (val >= 1_000_000_000) return `Rp ${(val / 1_000_000_000).toFixed(2)} M`;
+  if (val >= 1_000_000) return `Rp ${(val / 1_000_000).toFixed(2)} Jt`;
+  if (val >= 1_000) return `Rp ${(val / 1_000).toFixed(0)} Rb`;
+  return `Rp ${val}`;
+}
+
+export function formatRupiahFull(val: number): string {
+  return `Rp. ${val.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+export function formatNumber(val: number): string {
+  return val.toLocaleString('id-ID');
+}
+
+export function getRealisasiForTriwulan(data: IKUData[], triwulan: string): number {
+  if (triwulan === 'Semua Triwulan') {
+    return data.length > 0
+      ? Math.round((data.reduce((sum, d) => sum + d.persentase, 0) / data.length) * 100) / 100
+      : 0;
+  }
+  const idx = triwulanIndex(triwulan);
+  const validData = data.filter(d => {
+    const vals = [d.realisasiTW1, d.realisasiTW2, d.realisasiTW3, d.realisasiTW4];
+    return vals[idx] !== null && vals[idx] !== undefined;
+  });
+  if (validData.length === 0) return 0;
+  const sum = validData.reduce((acc, d) => {
+    const vals = [d.realisasiTW1, d.realisasiTW2, d.realisasiTW3, d.realisasiTW4];
+    const val = vals[idx] ?? 0;
+    const target = d.targetTahun;
+    if (target > 0) return acc + (val / target) * 100;
+    return acc;
+  }, 0);
+  return Math.round((sum / validData.length) * 100) / 100;
+}
+
+export function triwulanIndex(triwulan: string): number {
+  switch (triwulan) {
+    case 'Triwulan I': return 0;
+    case 'Triwulan II': return 1;
+    case 'Triwulan III': return 2;
+    case 'Triwulan IV': return 3;
+    default: return -1;
+  }
+}
+
+export function calculateKPI(data: IKUData[]): KPIResult {
+  const totalIndikator = data.length;
+  const totalTarget = data.filter(d => d.targetTahun > 0).length;
+  const rataRataCapaian = data.length > 0
+    ? Math.round((data.reduce((sum, d) => sum + d.persentase, 0) / data.length) * 100) / 100
+    : 0;
+  const totalAnggaran = data.reduce((sum, d) => sum + d.targetAnggaran, 0);
+  const realisasiAnggaran = data.reduce((sum, d) => sum + d.realisasiAnggaran, 0);
+  const persentaseAnggaran = totalAnggaran > 0
+    ? Math.round((realisasiAnggaran / totalAnggaran) * 10000) / 100
+    : 0;
+  const realisasiKinerja = rataRataCapaian;
+  return { totalIndikator, totalTarget, realisasiKinerja, rataRataCapaian, totalAnggaran, realisasiAnggaran, persentaseAnggaran };
+}
+
+export function calculateDistribution(data: IKUData[]): DistributionItem[] {
+  const total = data.length;
+  const sangatBaik = data.filter(d => d.persentase >= 90).length;
+  const baik = data.filter(d => d.persentase >= 75 && d.persentase < 90).length;
+  const cukup = data.filter(d => d.persentase >= 50 && d.persentase < 75).length;
+  const kurang = data.filter(d => d.persentase < 50).length;
+  const pct = (n: number) => total > 0 ? Math.round((n / total) * 10000) / 100 : 0;
+  return [
+    { name: '≥ 90% (Sangat Baik)', value: sangatBaik, percentage: pct(sangatBaik), color: '#10b981' },
+    { name: '75% – 89% (Baik)', value: baik, percentage: pct(baik), color: '#3b82f6' },
+    { name: '50% – 74% (Cukup)', value: cukup, percentage: pct(cukup), color: '#f59e0b' },
+    { name: '< 50% (Kurang)', value: kurang, percentage: pct(kurang), color: '#ef4444' },
+  ];
+}
+
+export function calculateQuarterlyAverages(data: IKUData[]): { triwulan: string; rataRata: number | null }[] {
+  const calc = (vals: (number | null)[]) => {
+    const valid = data.filter((_, i) => vals[i] !== null && vals[i] !== undefined && data[i].targetTahun > 0);
+    if (valid.length === 0) return null;
+    const sum = valid.reduce((acc, d, i) => {
+      const v = vals[i] ?? 0;
+      return acc + (v / d.targetTahun) * 100;
+    }, 0);
+    return Math.round((sum / valid.length) * 100) / 100;
+  };
+  return [
+    { triwulan: 'TW I', rataRata: calc(data.map(d => d.realisasiTW1)) },
+    { triwulan: 'TW II', rataRata: calc(data.map(d => d.realisasiTW2)) },
+    { triwulan: 'TW III', rataRata: calc(data.map(d => d.realisasiTW3)) },
+    { triwulan: 'TW IV', rataRata: calc(data.map(d => d.realisasiTW4)) },
+  ];
+}
+
+export function calculateBudgetQuarterly(data: IKUData[]): { triwulan: string; anggaran: number }[] {
+  const tw1 = data.reduce((s, d) => s + (d.realisasiTW1 !== null && d.targetTahun > 0 ? (d.realisasiTW1 / d.targetTahun) * d.targetAnggaran : 0), 0);
+  const tw2 = data.reduce((s, d) => s + (d.realisasiTW2 !== null && d.targetTahun > 0 ? (d.realisasiTW2 / d.targetTahun) * d.targetAnggaran : 0), 0);
+  const tw3 = data.reduce((s, d) => s + (d.realisasiTW3 !== null && d.targetTahun > 0 ? (d.realisasiTW3 / d.targetTahun) * d.targetAnggaran : 0), 0);
+  const tw4 = data.reduce((s, d) => s + (d.realisasiTW4 !== null && d.targetTahun > 0 ? (d.realisasiTW4 / d.targetTahun) * d.targetAnggaran : 0), 0);
+  return [
+    { triwulan: 'TW I', anggaran: Math.round(tw1) },
+    { triwulan: 'TW II', anggaran: Math.round(tw2) },
+    { triwulan: 'TW III', anggaran: Math.round(tw3) },
+    { triwulan: 'TW IV', anggaran: Math.round(tw4) },
+  ];
+}
+
+export function getTopFive(data: IKUData[]): IKUData[] {
+  return [...data].sort((a, b) => b.persentase - a.persentase).slice(0, 5);
+}
+
+export function getBottomFive(data: IKUData[]): IKUData[] {
+  return [...data].sort((a, b) => a.persentase - b.persentase).slice(0, 5);
+}
+
+export function getUniquePrograms(data: IKUData[]): string[] {
+  return [...new Set(data.map(d => d.program).filter(Boolean))];
+}
+
+export function getUniqueKegiatan(data: IKUData[], program?: string): string[] {
+  const filtered = program ? data.filter(d => d.program === program) : data;
+  return [...new Set(filtered.map(d => d.kegiatan).filter(Boolean))];
+}
+
+export function getUniqueSubKegiatan(data: IKUData[], program?: string, kegiatan?: string): string[] {
+  let filtered = data;
+  if (program) filtered = filtered.filter(d => d.program === program);
+  if (kegiatan) filtered = filtered.filter(d => d.kegiatan === kegiatan);
+  return [...new Set(filtered.map(d => d.subKegiatan).filter(Boolean))];
+}
