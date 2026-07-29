@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Search, ChevronUp, ChevronDown, Eye, Pencil, Check, X } from 'lucide-react';
+import { Search, ChevronUp, ChevronDown, Eye, Pencil, Check, X, Plus, Trash2 } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
 import { getKategori, getKategoriColor, getKategoriBgColor, getKategoriTextColor, formatNumber, formatRupiahFull } from '../utils/calculations';
 import type { IKUData } from '../types';
@@ -52,7 +52,13 @@ export function IKUTable() {
   const startEdit = useCallback((item: IKUData) => {
     setEditingId(item.id);
     setEditData({
+      program: item.program,
+      kegiatan: item.kegiatan,
+      subKegiatan: item.subKegiatan,
       indikator: item.indikator,
+      satuan: item.satuan,
+      targetRenstra: item.targetRenstra,
+      targetTahun: item.targetTahun,
       realisasiTW1: item.realisasiTW1,
       realisasiTW2: item.realisasiTW2,
       realisasiTW3: item.realisasiTW3,
@@ -74,10 +80,11 @@ export function IKUTable() {
     setEditData({});
   }, [editingId, editData, dispatch]);
 
+  const stringFields = ['program', 'kegiatan', 'subKegiatan', 'indikator', 'satuan'];
   const updateEditField = useCallback((field: string, value: string) => {
     setEditData(prev => ({
       ...prev,
-      [field]: field === 'indikator' ? value : value === '' ? null : Number(value),
+      [field]: stringFields.includes(field) ? value : value === '' ? null : Number(value),
     }));
   }, []);
 
@@ -191,6 +198,12 @@ export function IKUTable() {
                 {k}
               </button>
             ))}
+            <button
+              onClick={() => dispatch({ type: 'ADD_ROW' })}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-all flex items-center gap-1"
+            >
+              <Plus className="w-3 h-3" /> Tambah Baris
+            </button>
           </div>
         </div>
       </div>
@@ -305,14 +318,33 @@ export function IKUTable() {
               return (
                 <tr key={item.id} className={`transition-colors ${isEditing ? 'bg-blue-50/80' : 'hover:bg-gray-50/50'}`}>
                   <td className="px-0.5 py-1 text-gray-400 text-center">{noUrut}</td>
-                  <td className="px-1 py-1 whitespace-nowrap" />
+                  <td className="px-1 py-1 whitespace-nowrap">
+                    {isEditing ? (
+                      <div className="flex flex-col gap-0.5 min-w-[160px]">
+                        <input type="text" value={editData.program ?? ''} onChange={e => updateEditField('program', e.target.value)} placeholder="Program" className={textInputClass} />
+                        <input type="text" value={editData.kegiatan ?? ''} onChange={e => updateEditField('kegiatan', e.target.value)} placeholder="Kegiatan" className={textInputClass} />
+                        <input type="text" value={editData.subKegiatan ?? ''} onChange={e => updateEditField('subKegiatan', e.target.value)} placeholder="Sub Kegiatan" className={textInputClass} />
+                      </div>
+                    ) : ''}
+                  </td>
                   <td className="px-1 py-1 font-medium text-gray-800 break-words max-w-[200px]">
                     {isEditing ? (
                       <input type="text" value={editData.indikator ?? ''} onChange={e => updateEditField('indikator', e.target.value)} className={textInputClass} />
                     ) : item.indikator}
                   </td>
-                  <td className="px-0.5 py-1 text-center text-gray-500 whitespace-nowrap">{item.satuan}</td>
-                  <td className="px-0.5 py-1 text-right text-gray-600 whitespace-nowrap">{formatNumber(item.targetTahun)}</td>
+                  <td className="px-0.5 py-1 text-center text-gray-500 whitespace-nowrap">
+                    {isEditing ? (
+                      <input type="text" value={editData.satuan ?? ''} onChange={e => updateEditField('satuan', e.target.value)} className={`${textInputClass} text-center`} />
+                    ) : item.satuan}
+                  </td>
+                  <td className="px-0.5 py-1 text-right text-gray-600 whitespace-nowrap">
+                    {isEditing ? (
+                      <div className="flex flex-col gap-0.5">
+                        <input type="number" value={editData.targetTahun ?? ''} onChange={e => updateEditField('targetTahun', e.target.value)} className={`${numInputClass} w-full`} placeholder="Target Tahun" />
+                        <input type="number" value={editData.targetRenstra ?? ''} onChange={e => updateEditField('targetRenstra', e.target.value)} className={`${numInputClass} w-full`} placeholder="Target Renstra" />
+                      </div>
+                    ) : formatNumber(item.targetTahun)}
+                  </td>
                   <td className="px-0.5 py-1 text-center text-gray-500 whitespace-nowrap">
                     {isEditing ? (
                       <input type="number" value={editData.realisasiTW1 ?? ''} onChange={e => updateEditField('realisasiTW1', e.target.value)} className={numInputClass} />
@@ -398,6 +430,9 @@ export function IKUTable() {
                           </button>
                           <button onClick={() => dispatch({ type: 'SET_SELECTED_INDICATOR', payload: item })} className="p-0.5 hover:bg-blue-50 rounded transition-colors" title="Detail">
                             <Eye className="w-2.5 h-2.5 text-blue-500" />
+                          </button>
+                          <button onClick={() => dispatch({ type: 'DELETE_ROW', payload: item.id })} className="p-0.5 hover:bg-red-50 rounded transition-colors" title="Hapus">
+                            <Trash2 className="w-2.5 h-2.5 text-red-500" />
                           </button>
                         </>
                       )}

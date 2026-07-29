@@ -16,6 +16,8 @@ type DashboardAction =
   | { type: 'SET_SELECTED_INDICATOR'; payload: IKUData | null }
   | { type: 'SET_SHOW_IMPORT_MODAL'; payload: boolean }
   | { type: 'UPDATE_ROW'; payload: { id: number; changes: Partial<IKUData> } }
+  | { type: 'ADD_ROW' }
+  | { type: 'DELETE_ROW'; payload: number }
   | { type: 'RESET_FILTERS' };
 
 const initialState: DashboardState = {
@@ -60,6 +62,21 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
       return { ...state, selectedIndicator: action.payload };
     case 'SET_SHOW_IMPORT_MODAL':
       return { ...state, showImportModal: action.payload };
+    case 'ADD_ROW': {
+      const maxId = state.data.reduce((max, d) => Math.max(max, d.id), 0);
+      const newRow: IKUData = {
+        id: maxId + 1,
+        program: '', kegiatan: '', subKegiatan: '', indikator: '',
+        satuan: '', targetRenstra: 0, targetTahun: 0,
+        realisasiTW1: null, realisasiTW2: null, realisasiTW3: null, realisasiTW4: null,
+        realisasiTahun: 0, persentase: 0,
+        targetAnggaran: 0, realisasiAnggaran: 0, persentaseAnggaran: 0,
+        tahun: state.tahun,
+      };
+      return { ...state, data: [...state.data, newRow] };
+    }
+    case 'DELETE_ROW':
+      return { ...state, data: state.data.filter(d => d.id !== action.payload) };
     case 'RESET_FILTERS':
       return {
         ...initialState,
