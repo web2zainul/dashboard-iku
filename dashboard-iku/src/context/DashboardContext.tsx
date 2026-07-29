@@ -1,6 +1,8 @@
-import { createContext, useContext, useReducer, type ReactNode } from 'react';
+import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
+import * as XLSX from 'xlsx';
 import type { DashboardState, IKUData } from '../types';
 import { sampleData } from '../utils/sampleData';
+import { parseRenjaExcel } from '../utils/excelParser';
 
 type DashboardAction =
   | { type: 'SET_DATA'; payload: IKUData[] }
@@ -110,6 +112,24 @@ const DashboardContext = createContext<DashboardContextType | undefined>(undefin
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(dashboardReducer, initialState);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const res = await fetch('/renja2026.xlsx');
+        const buf = await res.arrayBuffer();
+        const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+        const parsed = parseRenjaExcel(wb);
+        if (parsed.length > 0) {
+          dispatch({ type: 'SET_DATA', payload: parsed });
+        }
+      } catch (err) {
+        console.error('Gagal load data:', err);
+      }
+    }
+    loadData();
+  }, []);
+
   return (
     <DashboardContext.Provider value={{ state, dispatch }}>
       {children}
