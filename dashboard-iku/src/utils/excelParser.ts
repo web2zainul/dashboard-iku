@@ -25,14 +25,14 @@ const DEFAULT_MAPPING_RENJA: ColumnMapping = {
   indikator: '__EMPTY_6',
   satuan: '__EMPTY_7',
   targetRenstra: '__EMPTY_8',
-  targetTahun: '__EMPTY_12',
-  realisasiTW1: '__EMPTY_14',
-  realisasiTW2: '__EMPTY_16',
-  realisasiTW3: '__EMPTY_18',
-  realisasiTW4: '__EMPTY_20',
-  realisasiTahun: '__EMPTY_22',
-  targetAnggaran: '__EMPTY_13',
-  realisasiAnggaran: '__EMPTY_23',
+  targetTahun: '__EMPTY_8',
+  realisasiTW1: '__EMPTY_10',
+  realisasiTW2: '__EMPTY_12',
+  realisasiTW3: '__EMPTY_14',
+  realisasiTW4: '__EMPTY_16',
+  realisasiTahun: '__EMPTY_18',
+  targetAnggaran: '__EMPTY_9',
+  realisasiAnggaran: '__EMPTY_19',
 };
 
 function detectFormat(workbook: XLSX.WorkBook): 'renja' | 'generic' {

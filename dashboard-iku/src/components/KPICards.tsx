@@ -29,8 +29,7 @@ function getAnggaranCategory(pct: number): string {
 
 function getKinerjaCategory(pct: number): string {
   if (pct >= 90) return 'SANGAT BAIK';
-  if (pct >= 75) return 'BAIK';
-  if (pct >= 50) return 'CUKUP';
+  if (pct >= 50) return 'BAIK';
   return 'KURANG';
 }
 

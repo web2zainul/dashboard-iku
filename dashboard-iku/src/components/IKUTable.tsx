@@ -133,7 +133,7 @@ export function IKUTable() {
     return sortDir === 'asc' ? <ChevronUp className="w-3 h-3 text-blue-200" /> : <ChevronDown className="w-3 h-3 text-blue-200" />;
   };
 
-  const kategoriFilters = ['Semua', 'Sangat Baik', 'Baik', 'Cukup', 'Kurang'];
+  const kategoriFilters = ['Semua', 'Sangat Baik', 'Baik', 'Kurang'];
 
   const programs = useMemo(() => [...new Set(state.data.map(d => d.program).filter(Boolean))], [state.data]);
   const kegiatanList = useMemo(() => {
@@ -306,7 +306,7 @@ export function IKUTable() {
                 <tr key={item.id} className={`transition-colors ${isEditing ? 'bg-blue-50/80' : 'hover:bg-gray-50/50'}`}>
                   <td className="px-0.5 py-1 text-gray-400 text-center">{noUrut}</td>
                   <td className="px-1 py-1 whitespace-nowrap" />
-                  <td className="px-1 py-1 font-medium text-gray-800 whitespace-nowrap">
+                  <td className="px-1 py-1 font-medium text-gray-800 break-words max-w-[200px]">
                     {isEditing ? (
                       <input type="text" value={editData.indikator ?? ''} onChange={e => updateEditField('indikator', e.target.value)} className={textInputClass} />
                     ) : item.indikator}

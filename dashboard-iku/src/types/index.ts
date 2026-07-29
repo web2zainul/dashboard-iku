@@ -35,7 +35,7 @@ export interface DashboardState {
   showImportModal: boolean;
 }
 
-export type KategoriCapaian = 'Sangat Baik' | 'Baik' | 'Cukup' | 'Kurang';
+export type KategoriCapaian = 'Sangat Baik' | 'Baik' | 'Kurang';
 
 export interface DistributionItem {
   name: string;

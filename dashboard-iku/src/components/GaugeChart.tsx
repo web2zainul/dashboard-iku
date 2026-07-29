@@ -8,7 +8,7 @@ export function GaugeChart() {
   const status = getStatusText(percentage);
 
   const statusColor = getKategoriColor(
-    percentage >= 90 ? 'Sangat Baik' : percentage >= 75 ? 'Baik' : percentage >= 50 ? 'Cukup' : 'Kurang'
+    percentage >= 90 ? 'Sangat Baik' : percentage >= 50 ? 'Baik' : 'Kurang'
   );
 
   const svgWidth = 280;
@@ -21,8 +21,7 @@ export function GaugeChart() {
 
   const segments = [
     { start: 0, end: 50, color: '#ef4444' },
-    { start: 50, end: 75, color: '#f59e0b' },
-    { start: 75, end: 90, color: '#3b82f6' },
+    { start: 50, end: 90, color: '#3b82f6' },
     { start: 90, end: 100, color: '#10b981' },
   ];
 
