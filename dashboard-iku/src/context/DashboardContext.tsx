@@ -116,7 +116,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function loadData() {
       try {
-        const res = await fetch('/renja2026.xlsx');
+        const res = await fetch('/RENJA-2026-1.xlsx');
         const buf = await res.arrayBuffer();
         const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
         const parsed = parseRenjaExcel(wb);
