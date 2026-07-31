@@ -211,9 +211,39 @@ export function IKUTable() {
     } catch (err) {
       console.error('Supabase group save error:', err);
     }
+    if (editingGroup.level === 2) {
+      const detailChanges = {
+        targetRenstra: agg.targetRenstra,
+        targetTahun: agg.targetTahun,
+        realisasiTW1: agg.realisasiTW1,
+        realisasiTW2: agg.realisasiTW2,
+        realisasiTW3: agg.realisasiTW3,
+        realisasiTW4: agg.realisasiTW4,
+        targetAnggaran: agg.targetAnggaran,
+        realisasiAnggaran: agg.realisasiAnggaran,
+      };
+      try {
+        await supabase.from('iku_data').update({
+          target_renstra: agg.targetRenstra,
+          target_tahun: agg.targetTahun,
+          realisasi_tw1: agg.realisasiTW1,
+          realisasi_tw2: agg.realisasiTW2,
+          realisasi_tw3: agg.realisasiTW3,
+          realisasi_tw4: agg.realisasiTW4,
+          target_anggaran: agg.targetAnggaran,
+          realisasi_anggaran: agg.realisasiAnggaran,
+        }).eq('program', editingGroup.program).eq('kegiatan', editingGroup.kegiatan).eq('sub_kegiatan', editingGroup.subKegiatan).eq('level', 3);
+        const detailRow = state.data.find(d => isDetailRow(d) && d.program === editingGroup.program && d.kegiatan === editingGroup.kegiatan && d.subKegiatan === editingGroup.subKegiatan);
+        if (detailRow) {
+          dispatch({ type: 'UPDATE_ROW', payload: { id: detailRow.id, changes: detailChanges } });
+        }
+      } catch (err) {
+        console.error('Supabase detail sync error:', err);
+      }
+    }
     setEditingGroup(null);
     setEditGroupData(null);
-  }, [editingGroup, editGroupData, state.tahun, dispatch]);
+  }, [editingGroup, editGroupData, state.tahun, state.data, dispatch]);
 
   const stringFields = ['program', 'kegiatan', 'subKegiatan', 'indikator', 'satuan'];
   const updateEditField = useCallback((field: string, value: string) => {
@@ -568,18 +598,28 @@ export function IKUTable() {
                     </td>
                     <td className="px-0.5 py-0.5 text-center">
                       <div className="flex items-center justify-center gap-0.5">
-                        <button onClick={() => child && dispatch({ type: 'SET_SELECTED_INDICATOR', payload: child })} className="p-0.5 hover:bg-blue-50 rounded transition-colors" title="Detail">
-                          <Eye className="w-2.5 h-2.5 text-blue-500" />
-                        </button>
-                        <button onClick={async () => {
-                          if (!child) return;
-                          if (!window.confirm('Yakin ingin menghapus baris ini?')) return;
-                          try { await supabase.from('iku_data').delete().eq('id', child.id); } catch (err) { console.error('Supabase delete error:', err); }
-                          try { await supabase.from('iku_data').delete().eq('program', child.program).eq('kegiatan', child.kegiatan).eq('sub_kegiatan', child.subKegiatan).eq('level', 2); } catch (err) { console.error('Supabase group delete error:', err); }
-                          dispatch({ type: 'DELETE_ROW', payload: child.id });
-                        }} className="p-0.5 hover:bg-red-50 rounded transition-colors" title="Hapus">
-                          <Trash2 className="w-2.5 h-2.5 text-red-500" />
-                        </button>
+                        {isGroupEditing ? (
+                          <>
+                            <button onClick={saveEditGroup} className="p-0.5 hover:bg-green-100 rounded transition-colors" title="Simpan"><Check className="w-2.5 h-2.5 text-green-600" /></button>
+                            <button onClick={cancelEditGroup} className="p-0.5 hover:bg-red-100 rounded transition-colors" title="Batal"><X className="w-2.5 h-2.5 text-red-500" /></button>
+                          </>
+                        ) : (
+                          <>
+                            <button onClick={() => startEditGroup(row)} className="p-0.5 hover:bg-yellow-50 rounded transition-colors" title="Edit"><Pencil className="w-2.5 h-2.5 text-yellow-500" /></button>
+                            <button onClick={() => child && dispatch({ type: 'SET_SELECTED_INDICATOR', payload: child })} className="p-0.5 hover:bg-blue-50 rounded transition-colors" title="Detail">
+                              <Eye className="w-2.5 h-2.5 text-blue-500" />
+                            </button>
+                            <button onClick={async () => {
+                              if (!child) return;
+                              if (!window.confirm('Yakin ingin menghapus baris ini?')) return;
+                              try { await supabase.from('iku_data').delete().eq('id', child.id); } catch (err) { console.error('Supabase delete error:', err); }
+                              try { await supabase.from('iku_data').delete().eq('program', child.program).eq('kegiatan', child.kegiatan).eq('sub_kegiatan', child.subKegiatan).eq('level', 2); } catch (err) { console.error('Supabase group delete error:', err); }
+                              dispatch({ type: 'DELETE_ROW', payload: child.id });
+                            }} className="p-0.5 hover:bg-red-50 rounded transition-colors" title="Hapus">
+                              <Trash2 className="w-2.5 h-2.5 text-red-500" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
