@@ -494,7 +494,7 @@ export function IKUTable() {
                   <tr key={`prog-${idx}`} className="bg-[#0f2358]/5 border-b border-gray-200">
                     <td className="px-0.5 py-1" />
                     <td className="px-1 py-1 font-bold text-[#0f2358] break-words">{row.label}</td>
-                    <td className="px-1 py-1 text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.indikator} onChange={e => updateEditGroupField('indikator', e.target.value)} className={gTextInputClass} /> : '-'}</td>
+                    <td className="px-1 py-1 text-black text-[10px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.indikator} onChange={e => updateEditGroupField('indikator', e.target.value)} className={gTextInputClass} /> : '-'}</td>
                     <td className="px-0.5 py-1 text-center text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.satuan} onChange={e => updateEditGroupField('satuan', e.target.value)} className={`${gTextInputClass} text-center`} /> : '-'}</td>
                     <td className="px-0.5 py-1 text-right text-gray-700 font-semibold">
                       {isGroupEditing ? <input type="number" value={agg.targetTahun} onChange={e => updateEditGroupField('targetTahun', e.target.value)} className={gNumInputClass} /> : formatNumber(agg.targetTahun)}
@@ -551,7 +551,7 @@ export function IKUTable() {
                   <tr key={`keg-${idx}`} className="bg-blue-50/50 border-b border-gray-100">
                     <td className="px-0.5 py-0.5" />
                     <td className="px-1 py-0.5 pl-4 font-semibold text-gray-700 break-words">{row.label}</td>
-                    <td className="px-1 py-0.5 text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.indikator} onChange={e => updateEditGroupField('indikator', e.target.value)} className={gTextInputClass} /> : (row.record?.indikator || '-')}</td>
+                    <td className="px-1 py-0.5 text-black text-[10px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.indikator} onChange={e => updateEditGroupField('indikator', e.target.value)} className={gTextInputClass} /> : (row.record?.indikator || '-')}</td>
                     <td className="px-0.5 py-0.5 text-center text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.satuan} onChange={e => updateEditGroupField('satuan', e.target.value)} className={`${gTextInputClass} text-center`} /> : '-'}</td>
                     <td className="px-0.5 py-0.5 text-right text-gray-700 font-semibold">
                       {isGroupEditing ? <input type="number" value={agg.targetTahun} onChange={e => updateEditGroupField('targetTahun', e.target.value)} className={gNumInputClass} /> : formatNumber(agg.targetTahun)}
@@ -609,7 +609,7 @@ export function IKUTable() {
                   <tr key={`sub-${idx}`} className="bg-gray-50/50 border-b border-gray-100">
                     <td className="px-0.5 py-0.5" />
                     <td className="px-1 py-0.5 pl-7 font-medium text-gray-500 italic break-words">{row.label}</td>
-                    <td className="px-1 py-0.5 text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.indikator} onChange={e => updateEditGroupField('indikator', e.target.value)} className={gTextInputClass} /> : (child?.indikator || '-')}</td>
+                    <td className="px-1 py-0.5 text-black text-[10px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.indikator} onChange={e => updateEditGroupField('indikator', e.target.value)} className={gTextInputClass} /> : (child?.indikator || '-')}</td>
                     <td className="px-0.5 py-0.5 text-center text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.satuan} onChange={e => updateEditGroupField('satuan', e.target.value)} className={`${gTextInputClass} text-center`} /> : (child?.satuan || '-')}</td>
                     <td className="px-0.5 py-0.5 text-right font-medium">
                       {isGroupEditing ? <input type="number" value={agg.targetTahun} onChange={e => updateEditGroupField('targetTahun', e.target.value)} className={gNumInputClass} /> : formatNumber(agg.targetTahun)}
@@ -697,7 +697,7 @@ export function IKUTable() {
                       </div>
                     ) : ''}
                   </td>
-                  <td className="px-1 py-1 font-medium text-gray-800 break-words max-w-[200px]">
+                  <td className="px-1 py-1 font-medium text-black text-[10px] break-words max-w-[200px]">
                     {isEditing ? (
                       <input type="text" value={editData.indikator ?? ''} onChange={e => updateEditField('indikator', e.target.value)} className={textInputClass} />
                     ) : item.indikator}
