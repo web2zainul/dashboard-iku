@@ -68,8 +68,10 @@ function buildHierarchicalRows(data: IKUData[]): GroupedRow[] {
       for (const [sub, items] of subMap) {
         const subRec = findRecord(2, prog, keg, sub);
         rows.push({ type: 'subKegiatan', label: sub, depth: 2, agg: aggFor(items, subRec), children: items, program: prog, kegiatan: keg, subKegiatan: sub, record: subRec });
-        for (const item of items) {
-          rows.push({ type: 'data', label: '', depth: 3, data: item, cat: getKategori(item.persentase) });
+        if (sub === 'Lainnya') {
+          for (const item of items) {
+            rows.push({ type: 'data', label: '', depth: 3, data: item, cat: getKategori(item.persentase) });
+          }
         }
       }
     }
@@ -526,13 +528,14 @@ export function IKUTable() {
                 const isGroupEditing = editingGroup?.type === 'subKegiatan' && editingGroup.program === row.program && editingGroup.kegiatan === row.kegiatan && editingGroup.subKegiatan === row.subKegiatan;
                 const agg = (isGroupEditing && editGroupData ? editGroupData : row.agg)!;
                 const gc = getKategori(agg.persentase);
+                const child = row.children?.[0];
                 const gNumInputClass = "w-full px-0.5 py-0.5 text-[9px] text-right border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none bg-yellow-50";
                 return (
                   <tr key={`sub-${idx}`} className="bg-gray-50/50 border-b border-gray-100">
                     <td className="px-0.5 py-0.5" />
                     <td className="px-1 py-0.5 pl-7 font-medium text-gray-500 italic break-words">{row.label}</td>
-                    <td className="px-1 py-0.5 text-gray-400 text-[8px]">-</td>
-                    <td className="px-0.5 py-0.5 text-center text-gray-400 text-[8px]">-</td>
+                    <td className="px-1 py-0.5 text-gray-400 text-[8px]">{child?.indikator || '-'}</td>
+                    <td className="px-0.5 py-0.5 text-center text-gray-400 text-[8px]">{child?.satuan || '-'}</td>
                     <td className="px-0.5 py-0.5 text-right font-medium">
                       {isGroupEditing ? <input type="number" value={agg.targetTahun} onChange={e => updateEditGroupField('targetTahun', e.target.value)} className={gNumInputClass} /> : formatNumber(agg.targetTahun)}
                     </td>
@@ -563,7 +566,22 @@ export function IKUTable() {
                         {getKategori(agg.persentase)}
                       </span>
                     </td>
-                    <td className="px-0.5 py-0.5 text-center" />
+                    <td className="px-0.5 py-0.5 text-center">
+                      <div className="flex items-center justify-center gap-0.5">
+                        <button onClick={() => child && dispatch({ type: 'SET_SELECTED_INDICATOR', payload: child })} className="p-0.5 hover:bg-blue-50 rounded transition-colors" title="Detail">
+                          <Eye className="w-2.5 h-2.5 text-blue-500" />
+                        </button>
+                        <button onClick={async () => {
+                          if (!child) return;
+                          if (!window.confirm('Yakin ingin menghapus baris ini?')) return;
+                          try { await supabase.from('iku_data').delete().eq('id', child.id); } catch (err) { console.error('Supabase delete error:', err); }
+                          try { await supabase.from('iku_data').delete().eq('program', child.program).eq('kegiatan', child.kegiatan).eq('sub_kegiatan', child.subKegiatan).eq('level', 2); } catch (err) { console.error('Supabase group delete error:', err); }
+                          dispatch({ type: 'DELETE_ROW', payload: child.id });
+                        }} className="p-0.5 hover:bg-red-50 rounded transition-colors" title="Hapus">
+                          <Trash2 className="w-2.5 h-2.5 text-red-500" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 );
               }
