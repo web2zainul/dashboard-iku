@@ -164,6 +164,90 @@ Perintah ini mendeploy ulang versi terbaru dari folder lokal ke project Vercel y
 
 ---
 
+## Bagian 4 — Setting Environment Variable Supabase di Vercel
+
+> Bagian ini menjelaskan cara memasang kredensial Supabase (`VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY`) ke project Vercel, supaya data tersimpan di database — bukan hanya localStorage browser.
+
+### 4.1 Ambil kredensial dari Supabase Dashboard
+
+1. Buka browser, masuk ke **https://supabase.com/dashboard**
+2. Pilih project dashboard-iku dari daftar project
+3. Di menu kiri, klik **Project Settings** (ikon gerigi)
+4. Klik menu **API** (di bawah judul *Configuration*)
+5. Salin dua nilai berikut:
+   - **Project URL** → ini nilai untuk `VITE_SUPABASE_URL`, contoh: `https://xxxxxxxx.supabase.co`
+   - **anon public** key (bukan `service_role`!) → ini nilai untuk `VITE_SUPABASE_ANON_KEY`, contoh: `eyJhbGciOiJIUzI1NiIs...`
+
+> Peringatan: jangan pernah menyalin key `service_role` ke aplikasi web — key itu bersifat rahasia dan bisa mengubah semua data tanpa batasan keamanan.
+
+### 4.2 Tambahkan environment variable di Vercel via CLI
+
+Buka terminal di folder project aplikasi:
+
+```powershell
+cd C:\renja\dashboard-iku\dashboard-iku
+```
+
+Tambahkan variabel pertama:
+
+```powershell
+vercel env add VITE_SUPABASE_URL
+```
+
+- CLI akan bertanya `For what environments?` — pilih **Production** (tekan spasi untuk memilih, lalu Enter)
+- Tempel (Ctrl+V) nilai **Project URL** dari langkah 4.1, lalu Enter
+
+Tambahkan variabel kedua:
+
+```powershell
+vercel env add VITE_SUPABASE_ANON_KEY
+```
+
+- Pilih environment yang sama (**Production**)
+- Tempel nilai **anon public** key, lalu Enter
+
+> Tips: pilih juga **Preview** dan **Development** pada langkah pemilihan environment agar deployment preview dan lokal juga menggunakan Supabase. Untuk Production saja juga cukup.
+
+### 4.3 Redeploy dengan env baru
+
+```powershell
+vercel --prod
+```
+
+Vercel akan build ulang aplikasi dengan environment variable yang sudah terpasang, lalu menampilkan URL production:
+
+```
+https://dashboard-iku-tab-iku.vercel.app
+```
+
+### 4.4 Verifikasi
+
+1. Buka **https://dashboard-iku-tab-iku.vercel.app**
+2. Klik tab **Capaian IKU**
+3. Edit salah satu sel (klik pensil → ubah → centang simpan)
+4. Cek di Supabase:
+   - **Table Editor → capaian_iku** — baris yang diedit berubah; atau
+   - **SQL Editor**, jalankan: `SELECT COUNT(*) FROM capaian_iku;` — jumlah baris bertambah/tidak 0
+
+### 4.5 (Opsional) Env untuk pengembangan lokal
+
+Agar `npm run dev` di komputer juga memakai Supabase, buat file `.env` di folder `dashboard-iku/`:
+
+```
+VITE_SUPABASE_URL=https://xxxxxxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
+```
+
+> File `.env` **tidak akan di-commit** ke GitHub (sudah masuk `.gitignore`). Jangan pernah mengekspos anon key di dokumen publik — anon key aman dipakai di aplikasi web, tapi tetap jaga dari penyalahgunaan dengan mengaktifkan RLS (sudah diaktifkan oleh migrasi).
+
+### 4.6 Catatan
+
+- Tanpa env vars ini, aplikasi tetap berjalan normal, tetapi data hanya tersimpan di **localStorage browser** masing-masing pengguna
+- Jika data di halaman tidak berubah setelah setting env, lakukan **hard refresh** (Ctrl+Shift+R) untuk memuat ulang JavaScript terbaru
+- Untuk melihat status environment variable: `vercel env ls`
+
+---
+
 ## Ringkasan Alur Baru
 
 | Langkah | Aksi |
@@ -171,4 +255,6 @@ Perintah ini mendeploy ulang versi terbaru dari folder lokal ke project Vercel y
 | 1 | Push kode ke branch `tab-iku` di GitHub |
 | 2 | Jalankan `supabase/migration_capaian.sql` di Supabase SQL Editor |
 | 3 | `vercel deploy --yes --name dashboard-iku-tab-iku` |
-| 4 | Buka URL yang dihasilkan, isi/edit data di tab **Capaian IKU** |
+| 4 | `vercel env add VITE_SUPABASE_URL` dan `vercel env add VITE_SUPABASE_ANON_KEY` |
+| 5 | `vercel --prod` untuk redeploy dengan env baru |
+| 6 | Buka URL yang dihasilkan, isi/edit data di tab **Capaian IKU** |
