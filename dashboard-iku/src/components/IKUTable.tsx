@@ -697,7 +697,7 @@ export function IKUTable() {
                           <button onClick={() => dispatch({ type: 'SET_SELECTED_INDICATOR', payload: item })} className="p-0.5 hover:bg-blue-50 rounded transition-colors" title="Detail">
                             <Eye className="w-2.5 h-2.5 text-blue-500" />
                           </button>
-                          <button onClick={async () => { try { await supabase.from('iku_data').delete().eq('id', item.id); dispatch({ type: 'DELETE_ROW', payload: item.id }); } catch (err) { console.error('Supabase delete error:', err); } }} className="p-0.5 hover:bg-red-50 rounded transition-colors" title="Hapus">
+                          <button onClick={async () => { if (!window.confirm('Yakin ingin menghapus baris ini?')) return; try { await supabase.from('iku_data').delete().eq('id', item.id); dispatch({ type: 'DELETE_ROW', payload: item.id }); } catch (err) { console.error('Supabase delete error:', err); } }} className="p-0.5 hover:bg-red-50 rounded transition-colors" title="Hapus">
                             <Trash2 className="w-2.5 h-2.5 text-red-500" />
                           </button>
                         </>
