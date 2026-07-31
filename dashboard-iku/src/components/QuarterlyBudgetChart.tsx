@@ -1,6 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useDashboard } from '../context/DashboardContext';
-import { calculateBudgetQuarterly, formatRupiah } from '../utils/calculations';
+import { formatRupiah } from '../utils/calculations';
 
 type TooltipProps = { active?: boolean; payload?: Array<{ value: number; name: string }>; label?: string };
 
@@ -16,10 +15,14 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   return null;
 };
 
-export function QuarterlyBudgetChart() {
-  const { state } = useDashboard();
-  const budgetData = calculateBudgetQuarterly(state.data);
+const budgetData = [
+  { triwulan: 'TW I', anggaran: 1866387810 },
+  { triwulan: 'TW II', anggaran: 1830917990 },
+  { triwulan: 'TW III', anggaran: 0 },
+  { triwulan: 'TW IV', anggaran: 0 },
+];
 
+export function QuarterlyBudgetChart() {
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 card-hover h-full">
       <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
