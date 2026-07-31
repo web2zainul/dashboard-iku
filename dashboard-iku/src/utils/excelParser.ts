@@ -59,6 +59,7 @@ function parseRenjaFormat(workbook: XLSX.WorkBook): IKUData[] {
   const rawData = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws);
   const results: IKUData[] = [];
   let currentProgram = '';
+  let currentProgramIndikator = '';
   let currentKegiatan = '';
   let currentSubKegiatan = '';
   let id = 1;
@@ -74,8 +75,9 @@ function parseRenjaFormat(workbook: XLSX.WorkBook): IKUData[] {
       currentProgram = empty5;
       currentKegiatan = '';
       currentSubKegiatan = '';
+      currentProgramIndikator = empty6 ? empty6 : '';
       if (empty6 && target > 0) {
-        results.push(buildIndicator(row, id++, currentProgram, currentKegiatan, currentSubKegiatan, DEFAULT_MAPPING_RENJA));
+        results.push(buildIndicator(row, id++, currentProgram, currentProgramIndikator, '', '', DEFAULT_MAPPING_RENJA));
       }
       continue;
     }
@@ -84,7 +86,7 @@ function parseRenjaFormat(workbook: XLSX.WorkBook): IKUData[] {
       currentKegiatan = empty5;
       currentSubKegiatan = '';
       if (empty6 && target > 0) {
-        results.push(buildIndicator(row, id++, currentProgram, currentKegiatan, currentSubKegiatan, DEFAULT_MAPPING_RENJA));
+        results.push(buildIndicator(row, id++, currentProgram, currentProgramIndikator, currentKegiatan, currentSubKegiatan, DEFAULT_MAPPING_RENJA));
       }
       continue;
     }
@@ -92,25 +94,27 @@ function parseRenjaFormat(workbook: XLSX.WorkBook): IKUData[] {
     if (empty5.startsWith('Sub Kegiatan') || empty5.startsWith('Sub kegiatan')) {
       currentSubKegiatan = empty5;
       if (empty6 && target > 0) {
-        results.push(buildIndicator(row, id++, currentProgram, currentKegiatan, currentSubKegiatan, DEFAULT_MAPPING_RENJA));
+        results.push(buildIndicator(row, id++, currentProgram, currentProgramIndikator, currentKegiatan, currentSubKegiatan, DEFAULT_MAPPING_RENJA));
       }
       continue;
     }
 
     if (empty3 && !empty5 && empty6 && target > 0) {
-      results.push(buildIndicator(row, id++, currentProgram, currentKegiatan, currentSubKegiatan, DEFAULT_MAPPING_RENJA));
+      currentProgramIndikator = empty6;
+      results.push(buildIndicator(row, id++, currentProgram, empty6, '', '', DEFAULT_MAPPING_RENJA));
       continue;
     }
 
     if (!empty5 && !empty6 && empty4) {
       if (target > 0 && empty6) {
-        results.push(buildIndicator(row, id++, currentProgram, currentKegiatan, currentSubKegiatan, DEFAULT_MAPPING_RENJA));
+        results.push(buildIndicator(row, id++, currentProgram, currentProgramIndikator, currentKegiatan, currentSubKegiatan, DEFAULT_MAPPING_RENJA));
       }
       continue;
     }
 
     if (empty6 && target > 0 && id <= 100) {
-      results.push(buildIndicator(row, id++, currentProgram, currentKegiatan, currentSubKegiatan, DEFAULT_MAPPING_RENJA));
+      currentProgramIndikator = empty6;
+      results.push(buildIndicator(row, id++, currentProgram, empty6, '', '', DEFAULT_MAPPING_RENJA));
     }
   }
 
@@ -121,6 +125,7 @@ function buildIndicator(
   row: Record<string, unknown>,
   id: number,
   program: string,
+  programIndikator: string,
   kegiatan: string,
   subKegiatan: string,
   mapping: ColumnMapping
@@ -151,6 +156,7 @@ function buildIndicator(
   return {
     id,
     program,
+    programIndikator,
     kegiatan,
     subKegiatan,
     indikator,
@@ -213,6 +219,7 @@ function parseGenericFormat(workbook: XLSX.WorkBook): IKUData[] {
     results.push({
       id: id++,
       program,
+      programIndikator: '',
       kegiatan,
       subKegiatan,
       indikator,

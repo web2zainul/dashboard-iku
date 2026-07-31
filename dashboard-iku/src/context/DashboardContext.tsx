@@ -97,6 +97,7 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
 function toDb(row: Partial<IKUData>) {
   return {
     program: row.program,
+    program_indikator: row.programIndikator,
     kegiatan: row.kegiatan,
     sub_kegiatan: row.subKegiatan,
     indikator: row.indikator,
@@ -126,6 +127,7 @@ function fromDb(row: Record<string, unknown>): IKUData {
   return {
     id: row.id as number,
     program: (row.program as string) ?? '',
+    programIndikator: (row.program_indikator as string) ?? '',
     kegiatan: (row.kegiatan as string) ?? '',
     subKegiatan: (row.sub_kegiatan as string) ?? '',
     indikator: (row.indikator as string) ?? '',
@@ -146,11 +148,12 @@ function fromDb(row: Record<string, unknown>): IKUData {
   };
 }
 
-function makeGroupRecord(opts: { program: string; kegiatan: string; subKegiatan: string; level: number; items: IKUData[]; tahun: number }): IKUData {
+function makeGroupRecord(opts: { program: string; programIndikator: string; kegiatan: string; subKegiatan: string; level: number; items: IKUData[]; tahun: number }): IKUData {
   const agg = computeAggregate(opts.items);
   return {
     id: 0,
     program: opts.program,
+    programIndikator: opts.programIndikator,
     kegiatan: opts.kegiatan,
     subKegiatan: opts.subKegiatan,
     indikator: '',
@@ -178,37 +181,44 @@ async function ensureGroupRows(allRows: IKUData[]): Promise<IKUData[]> {
   const exists = (level: number, program: string, kegiatan: string, subKegiatan: string) =>
     groups.some(g => g.level === level && g.program === program && g.kegiatan === kegiatan && g.subKegiatan === subKegiatan);
 
-  const programMap = new Map<string, Map<string, Map<string, IKUData[]>>>();
+  const programMap = new Map<string, Map<string, Map<string, Map<string, IKUData[]>>>>();
   for (const item of details) {
+    if (!item.kegiatan) continue;
     const prog = item.program || 'Lainnya';
+    const pi = item.programIndikator || item.program || 'Indikator';
     const keg = item.kegiatan || 'Lainnya';
     const sub = item.subKegiatan || 'Lainnya';
     if (!programMap.has(prog)) programMap.set(prog, new Map());
-    if (!programMap.get(prog)!.has(keg)) programMap.get(prog)!.set(keg, new Map());
-    if (!programMap.get(prog)!.get(keg)!.has(sub)) programMap.get(prog)!.get(keg)!.set(sub, []);
-    programMap.get(prog)!.get(keg)!.get(sub)!.push(item);
+    if (!programMap.get(prog)!.has(pi)) programMap.get(prog)!.set(pi, new Map());
+    if (!programMap.get(prog)!.get(pi)!.has(keg)) programMap.get(prog)!.get(pi)!.set(keg, new Map());
+    if (!programMap.get(prog)!.get(pi)!.get(keg)!.has(sub)) programMap.get(prog)!.get(pi)!.get(keg)!.set(sub, []);
+    programMap.get(prog)!.get(pi)!.get(keg)!.get(sub)!.push(item);
   }
 
   const tahun = details[0]?.tahun ?? 2026;
   const newGroups: IKUData[] = [];
 
-  for (const [prog, kegMap] of programMap) {
+  for (const [prog, piMap] of programMap) {
     const progItems: IKUData[] = [];
-    for (const [, subMap] of kegMap) {
-      for (const [, items] of subMap) progItems.push(...items);
+    for (const [, kegMap] of piMap) {
+      for (const [, subMap] of kegMap) {
+        for (const [, items] of subMap) progItems.push(...items);
+      }
     }
     if (!exists(0, prog, '', '')) {
-      newGroups.push(makeGroupRecord({ program: prog, kegiatan: '', subKegiatan: '', level: 0, items: progItems, tahun }));
+      newGroups.push(makeGroupRecord({ program: prog, programIndikator: '', kegiatan: '', subKegiatan: '', level: 0, items: progItems, tahun }));
     }
-    for (const [keg, subMap] of kegMap) {
-      const kegItems: IKUData[] = [];
-      for (const [, items] of subMap) kegItems.push(...items);
-      if (!exists(1, prog, keg, '')) {
-        newGroups.push(makeGroupRecord({ program: prog, kegiatan: keg, subKegiatan: '', level: 1, items: kegItems, tahun }));
-      }
-      for (const [sub, items] of subMap) {
-        if (!exists(2, prog, keg, sub)) {
-          newGroups.push(makeGroupRecord({ program: prog, kegiatan: keg, subKegiatan: sub, level: 2, items, tahun }));
+    for (const [pi, kegMap] of piMap) {
+      for (const [keg, subMap] of kegMap) {
+        const kegItems: IKUData[] = [];
+        for (const [, items] of subMap) kegItems.push(...items);
+        if (!exists(1, prog, keg, '')) {
+          newGroups.push(makeGroupRecord({ program: prog, programIndikator: pi, kegiatan: keg, subKegiatan: '', level: 1, items: kegItems, tahun }));
+        }
+        for (const [sub, items] of subMap) {
+          if (!exists(2, prog, keg, sub)) {
+            newGroups.push(makeGroupRecord({ program: prog, programIndikator: pi, kegiatan: keg, subKegiatan: sub, level: 2, items, tahun }));
+          }
         }
       }
     }

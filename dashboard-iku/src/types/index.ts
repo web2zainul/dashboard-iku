@@ -1,6 +1,7 @@
 export interface IKUData {
   id: number;
   program: string;
+  programIndikator: string;
   kegiatan: string;
   subKegiatan: string;
   indikator: string;

@@ -20,7 +20,7 @@ type GroupAgg = {
 };
 
 interface GroupedRow {
-  type: 'program' | 'kegiatan' | 'subKegiatan' | 'data';
+  type: 'program' | 'indikator' | 'kegiatan' | 'subKegiatan' | 'data';
   label: string;
   depth: number;
   data?: IKUData;
@@ -28,6 +28,7 @@ interface GroupedRow {
   agg?: GroupAgg;
   children?: IKUData[];
   program?: string;
+  programIndikator?: string;
   kegiatan?: string;
   subKegiatan?: string;
   record?: IKUData | null;
@@ -35,45 +36,72 @@ interface GroupedRow {
 
 function buildHierarchicalRows(data: IKUData[]): GroupedRow[] {
   const rows: GroupedRow[] = [];
-  const programMap = new Map<string, Map<string, Map<string, IKUData[]>>>();
+  const programMap = new Map<string, Map<string, Map<string, Map<string, IKUData[]>>>>();
   const groupRecords = data.filter(d => !isDetailRow(d));
+  const junkItems: IKUData[] = [];
 
   for (const item of data) {
     if (!isDetailRow(item)) continue;
-    const prog = item.program || 'Lainnya';
-    const keg = item.kegiatan || 'Lainnya';
-    const sub = item.subKegiatan || 'Lainnya';
+    if (!item.program) { junkItems.push(item); continue; }
+    const prog = item.program;
+    const pi = item.programIndikator || item.program;
+    const keg = item.kegiatan;
+    const sub = item.subKegiatan;
     if (!programMap.has(prog)) programMap.set(prog, new Map());
-    if (!programMap.get(prog)!.has(keg)) programMap.get(prog)!.set(keg, new Map());
-    if (!programMap.get(prog)!.get(keg)!.has(sub)) programMap.get(prog)!.get(keg)!.set(sub, []);
-    programMap.get(prog)!.get(keg)!.get(sub)!.push(item);
+    if (!programMap.get(prog)!.has(pi)) programMap.get(prog)!.set(pi, new Map());
+    if (!programMap.get(prog)!.get(pi)!.has(keg)) programMap.get(prog)!.get(pi)!.set(keg, new Map());
+    if (!programMap.get(prog)!.get(pi)!.get(keg)!.has(sub)) programMap.get(prog)!.get(pi)!.get(keg)!.set(sub, []);
+    programMap.get(prog)!.get(pi)!.get(keg)!.get(sub)!.push(item);
   }
 
   const findRecord = (level: number, program: string, kegiatan: string, subKegiatan: string) =>
     groupRecords.find(r => r.level === level && r.program === program && r.kegiatan === kegiatan && r.subKegiatan === subKegiatan) ?? null;
   const aggFor = (items: IKUData[], record: IKUData | null) => record ? computeAggregate([record]) : computeAggregate(items);
 
-  for (const [prog, kegMap] of programMap) {
+  for (const [prog, piMap] of programMap) {
     const progItems: IKUData[] = [];
-    for (const [, subMap] of kegMap) {
-      for (const [, items] of subMap) progItems.push(...items);
+    for (const [, kegMap] of piMap) {
+      for (const [, subMap] of kegMap) {
+        for (const [, items] of subMap) progItems.push(...items);
+      }
     }
-    const rec = findRecord(0, prog, '', '');
-    rows.push({ type: 'program', label: prog, depth: 0, agg: aggFor(progItems, rec), children: progItems, program: prog, kegiatan: '', subKegiatan: '', record: rec });
-    for (const [keg, subMap] of kegMap) {
-      const kegItems: IKUData[] = [];
-      for (const [, items] of subMap) kegItems.push(...items);
-      const kegRec = findRecord(1, prog, keg, '');
-      rows.push({ type: 'kegiatan', label: keg, depth: 1, agg: aggFor(kegItems, kegRec), children: kegItems, program: prog, kegiatan: keg, subKegiatan: '', record: kegRec });
-      for (const [sub, items] of subMap) {
-        const subRec = findRecord(2, prog, keg, sub);
-        rows.push({ type: 'subKegiatan', label: sub, depth: 2, agg: aggFor(items, subRec), children: items, program: prog, kegiatan: keg, subKegiatan: sub, record: subRec });
-        if (sub === 'Lainnya') {
-          for (const item of items) {
-            rows.push({ type: 'data', label: '', depth: 3, data: item, cat: getKategori(item.persentase) });
+    const progRec = findRecord(0, prog, '', '');
+    rows.push({ type: 'program', label: prog, depth: 0, agg: aggFor(progItems, progRec), children: progItems, program: prog, programIndikator: '', kegiatan: '', subKegiatan: '', record: progRec });
+
+    for (const [pi, kegMap] of piMap) {
+      const indikatorItems = kegMap.get('')?.get('') ?? [];
+      for (const item of indikatorItems) {
+        rows.push({ type: 'indikator', label: item.indikator, depth: 1, agg: computeAggregate([item]), data: item, cat: getKategori(item.persentase), children: [item], program: prog, programIndikator: pi, kegiatan: '', subKegiatan: '', record: null });
+      }
+      for (const [keg, subMap] of kegMap) {
+        if (!keg) continue;
+        const kegItems: IKUData[] = [];
+        for (const [, items] of subMap) kegItems.push(...items);
+        const kegRec = findRecord(1, prog, keg, '');
+        rows.push({ type: 'kegiatan', label: keg, depth: 2, agg: aggFor(kegItems, kegRec), children: kegItems, program: prog, programIndikator: pi, kegiatan: keg, subKegiatan: '', record: kegRec });
+        for (const [sub, items] of subMap) {
+          const subRec = findRecord(2, prog, keg, sub);
+          rows.push({ type: 'subKegiatan', label: sub, depth: 3, agg: aggFor(items, subRec), children: items, program: prog, programIndikator: pi, kegiatan: keg, subKegiatan: sub, record: subRec });
+          if (sub === 'Lainnya') {
+            for (const item of items) {
+              rows.push({ type: 'data', label: '', depth: 4, data: item, cat: getKategori(item.persentase) });
+            }
           }
         }
       }
+    }
+  }
+
+  if (junkItems.length > 0) {
+    const prog = 'Lainnya';
+    const progRec = findRecord(0, prog, '', '');
+    rows.push({ type: 'program', label: prog, depth: 0, agg: aggFor(junkItems, progRec), children: junkItems, program: prog, programIndikator: '', kegiatan: '', subKegiatan: '', record: progRec });
+    const kegRec = findRecord(1, prog, 'Lainnya', '');
+    rows.push({ type: 'kegiatan', label: 'Lainnya', depth: 2, agg: aggFor(junkItems, kegRec), children: junkItems, program: prog, programIndikator: '', kegiatan: 'Lainnya', subKegiatan: '', record: kegRec });
+    const subRec = findRecord(2, prog, 'Lainnya', 'Lainnya');
+    rows.push({ type: 'subKegiatan', label: 'Lainnya', depth: 3, agg: aggFor(junkItems, subRec), children: junkItems, program: prog, programIndikator: '', kegiatan: 'Lainnya', subKegiatan: 'Lainnya', record: subRec });
+    for (const item of junkItems) {
+      rows.push({ type: 'data', label: '', depth: 4, data: item, cat: getKategori(item.persentase) });
     }
   }
 
@@ -93,6 +121,7 @@ export function IKUTable() {
     setEditGroupData(null);
     setEditData({
       program: item.program,
+      programIndikator: item.programIndikator,
       kegiatan: item.kegiatan,
       subKegiatan: item.subKegiatan,
       indikator: item.indikator,
@@ -137,10 +166,11 @@ export function IKUTable() {
     subKegiatan: string;
     id: number | null;
   } | null>(null);
-  const [editGroupData, setEditGroupData] = useState<GroupAgg | null>(null);
+  type GroupEditData = GroupAgg & { indikator: string; satuan: string };
+  const [editGroupData, setEditGroupData] = useState<GroupEditData | null>(null);
 
   const startEditGroup = useCallback((row: GroupedRow) => {
-    if (!row.agg || row.type === 'data') return;
+    if (!row.agg || row.type === 'data' || row.type === 'indikator') return;
     const level = row.type === 'program' ? 0 : row.type === 'kegiatan' ? 1 : 2;
     setEditingGroup({
       type: row.type,
@@ -150,7 +180,11 @@ export function IKUTable() {
       subKegiatan: row.subKegiatan ?? '',
       id: row.record?.id ?? null,
     });
-    setEditGroupData({ ...row.agg });
+    setEditGroupData({
+      ...row.agg,
+      indikator: row.type === 'subKegiatan' ? (row.children?.[0]?.indikator ?? '') : (row.record?.indikator ?? ''),
+      satuan: row.type === 'subKegiatan' ? (row.children?.[0]?.satuan ?? '') : (row.record?.satuan ?? ''),
+    });
     setEditingId(null);
     setEditData({});
   }, []);
@@ -163,6 +197,9 @@ export function IKUTable() {
   const updateEditGroupField = useCallback((field: string, value: string) => {
     setEditGroupData(prev => {
       if (!prev) return prev;
+      if (field === 'indikator' || field === 'satuan') {
+        return { ...prev, [field]: value };
+      }
       const next = { ...prev, [field]: value === '' ? 0 : Number(value) };
       next.realisasiTahun = next.realisasiTW1 + next.realisasiTW2 + next.realisasiTW3 + next.realisasiTW4;
       next.persentase = next.targetTahun > 0 ? (next.realisasiTahun / next.targetTahun) * 100 : 0;
@@ -177,10 +214,11 @@ export function IKUTable() {
     const record: IKUData = {
       id: editingGroup.id ?? 0,
       program: editingGroup.program,
+      programIndikator: '',
       kegiatan: editingGroup.kegiatan,
       subKegiatan: editingGroup.subKegiatan,
-      indikator: '',
-      satuan: '',
+      indikator: agg.indikator,
+      satuan: agg.satuan,
       targetRenstra: agg.targetRenstra,
       targetTahun: agg.targetTahun,
       realisasiTW1: agg.realisasiTW1,
@@ -213,6 +251,8 @@ export function IKUTable() {
     }
     if (editingGroup.level === 2) {
       const detailChanges = {
+        indikator: agg.indikator,
+        satuan: agg.satuan,
         targetRenstra: agg.targetRenstra,
         targetTahun: agg.targetTahun,
         realisasiTW1: agg.realisasiTW1,
@@ -224,6 +264,8 @@ export function IKUTable() {
       };
       try {
         await supabase.from('iku_data').update({
+          indikator: agg.indikator,
+          satuan: agg.satuan,
           target_renstra: agg.targetRenstra,
           target_tahun: agg.targetTahun,
           realisasi_tw1: agg.realisasiTW1,
@@ -245,7 +287,7 @@ export function IKUTable() {
     setEditGroupData(null);
   }, [editingGroup, editGroupData, state.tahun, state.data, dispatch]);
 
-  const stringFields = ['program', 'kegiatan', 'subKegiatan', 'indikator', 'satuan'];
+  const stringFields = ['program', 'programIndikator', 'kegiatan', 'subKegiatan', 'indikator', 'satuan'];
   const updateEditField = useCallback((field: string, value: string) => {
     setEditData(prev => ({
       ...prev,
@@ -447,12 +489,13 @@ export function IKUTable() {
                 const agg = (isGroupEditing && editGroupData ? editGroupData : row.agg)!;
                 const gc = getKategori(agg.persentase);
                 const gNumInputClass = "w-full px-0.5 py-0.5 text-[9px] text-right border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none bg-yellow-50";
+                const gTextInputClass = "w-full px-0.5 py-0.5 text-[9px] border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none bg-yellow-50";
                 return (
                   <tr key={`prog-${idx}`} className="bg-[#0f2358]/5 border-b border-gray-200">
                     <td className="px-0.5 py-1" />
                     <td className="px-1 py-1 font-bold text-[#0f2358] break-words">{row.label}</td>
-                    <td className="px-1 py-1 text-gray-400 text-[8px]">{row.record?.indikator || '-'}</td>
-                    <td className="px-0.5 py-1 text-center text-gray-400 text-[8px]">-</td>
+                    <td className="px-1 py-1 text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.indikator} onChange={e => updateEditGroupField('indikator', e.target.value)} className={gTextInputClass} /> : '-'}</td>
+                    <td className="px-0.5 py-1 text-center text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.satuan} onChange={e => updateEditGroupField('satuan', e.target.value)} className={`${gTextInputClass} text-center`} /> : '-'}</td>
                     <td className="px-0.5 py-1 text-right text-gray-700 font-semibold">
                       {isGroupEditing ? <input type="number" value={agg.targetTahun} onChange={e => updateEditGroupField('targetTahun', e.target.value)} className={gNumInputClass} /> : formatNumber(agg.targetTahun)}
                     </td>
@@ -503,12 +546,13 @@ export function IKUTable() {
                 const agg = (isGroupEditing && editGroupData ? editGroupData : row.agg)!;
                 const gc = getKategori(agg.persentase);
                 const gNumInputClass = "w-full px-0.5 py-0.5 text-[9px] text-right border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none bg-yellow-50";
+                const gTextInputClass = "w-full px-0.5 py-0.5 text-[9px] border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none bg-yellow-50";
                 return (
                   <tr key={`keg-${idx}`} className="bg-blue-50/50 border-b border-gray-100">
                     <td className="px-0.5 py-0.5" />
                     <td className="px-1 py-0.5 pl-4 font-semibold text-gray-700 break-words">{row.label}</td>
-                    <td className="px-1 py-0.5 text-gray-400 text-[8px]">{row.record?.indikator || '-'}</td>
-                    <td className="px-0.5 py-0.5 text-center text-gray-400 text-[8px]">-</td>
+                    <td className="px-1 py-0.5 text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.indikator} onChange={e => updateEditGroupField('indikator', e.target.value)} className={gTextInputClass} /> : (row.record?.indikator || '-')}</td>
+                    <td className="px-0.5 py-0.5 text-center text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.satuan} onChange={e => updateEditGroupField('satuan', e.target.value)} className={`${gTextInputClass} text-center`} /> : '-'}</td>
                     <td className="px-0.5 py-0.5 text-right text-gray-700 font-semibold">
                       {isGroupEditing ? <input type="number" value={agg.targetTahun} onChange={e => updateEditGroupField('targetTahun', e.target.value)} className={gNumInputClass} /> : formatNumber(agg.targetTahun)}
                     </td>
@@ -560,12 +604,13 @@ export function IKUTable() {
                 const gc = getKategori(agg.persentase);
                 const child = row.children?.[0];
                 const gNumInputClass = "w-full px-0.5 py-0.5 text-[9px] text-right border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none bg-yellow-50";
+                const gTextInputClass = "w-full px-0.5 py-0.5 text-[9px] border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none bg-yellow-50";
                 return (
                   <tr key={`sub-${idx}`} className="bg-gray-50/50 border-b border-gray-100">
                     <td className="px-0.5 py-0.5" />
                     <td className="px-1 py-0.5 pl-7 font-medium text-gray-500 italic break-words">{row.label}</td>
-                    <td className="px-1 py-0.5 text-gray-400 text-[8px]">{child?.indikator || '-'}</td>
-                    <td className="px-0.5 py-0.5 text-center text-gray-400 text-[8px]">{child?.satuan || '-'}</td>
+                    <td className="px-1 py-0.5 text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.indikator} onChange={e => updateEditGroupField('indikator', e.target.value)} className={gTextInputClass} /> : (child?.indikator || '-')}</td>
+                    <td className="px-0.5 py-0.5 text-center text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.satuan} onChange={e => updateEditGroupField('satuan', e.target.value)} className={`${gTextInputClass} text-center`} /> : (child?.satuan || '-')}</td>
                     <td className="px-0.5 py-0.5 text-right font-medium">
                       {isGroupEditing ? <input type="number" value={agg.targetTahun} onChange={e => updateEditGroupField('targetTahun', e.target.value)} className={gNumInputClass} /> : formatNumber(agg.targetTahun)}
                     </td>
@@ -628,9 +673,10 @@ export function IKUTable() {
 
               const item = row.data!;
               const cat = row.cat!;
+              const isIndikatorRow = row.type === 'indikator';
               let noUrut = 0;
               for (let i = 0; i <= idx; i++) {
-                if (hierarchicalRows[i].type === 'data') noUrut++;
+                if (hierarchicalRows[i].type === 'data' || hierarchicalRows[i].type === 'indikator') noUrut++;
               }
 
               const isEditing = editingId === item.id;
@@ -639,12 +685,13 @@ export function IKUTable() {
               const textInputClass = "w-full px-0.5 py-0.5 text-[9px] border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none bg-blue-50/50";
 
               return (
-                <tr key={item.id} className={`transition-colors ${isEditing ? 'bg-blue-50/80' : 'hover:bg-gray-50/50'}`}>
+                <tr key={item.id} className={`transition-colors ${isEditing ? 'bg-blue-50/80' : isIndikatorRow ? 'bg-indigo-50/40 hover:bg-indigo-50/70' : 'hover:bg-gray-50/50'}`}>
                   <td className="px-0.5 py-1 text-gray-400 text-center">{noUrut}</td>
                   <td className="px-1 py-1 break-words">
                     {isEditing ? (
                       <div className="flex flex-col gap-0.5 min-w-[160px]">
                         <input type="text" value={editData.program ?? ''} onChange={e => updateEditField('program', e.target.value)} placeholder="Program" className={textInputClass} />
+                        <input type="text" value={editData.programIndikator ?? ''} onChange={e => updateEditField('programIndikator', e.target.value)} placeholder="Indikator Program" className={textInputClass} />
                         <input type="text" value={editData.kegiatan ?? ''} onChange={e => updateEditField('kegiatan', e.target.value)} placeholder="Kegiatan" className={textInputClass} />
                         <input type="text" value={editData.subKegiatan ?? ''} onChange={e => updateEditField('subKegiatan', e.target.value)} placeholder="Sub Kegiatan" className={textInputClass} />
                       </div>
