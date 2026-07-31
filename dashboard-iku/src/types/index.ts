@@ -21,6 +21,32 @@ export interface IKUData {
   level: number;
 }
 
+export interface CapaianIKU {
+  id: number;
+  no: number;
+  sasaranStrategis: string;
+  indikator: string;
+  caraPengukuran: string;
+  targetTahun: number;
+  realisasiTW1: number | null;
+  persentaseTW1: number;
+  ketTW1: string;
+  realisasiTW2: number | null;
+  persentaseTW2: number;
+  ketTW2: string;
+  realisasiTW3: number | null;
+  persentaseTW3: number;
+  ketTW3: string;
+  realisasiTW4: number | null;
+  persentaseTW4: number;
+  ketTW4: string;
+  program: string;
+  pagu: number;
+  realisasiAnggaran: number;
+  persentaseAnggaran: number;
+  tahun: number;
+}
+
 export interface DashboardState {
   data: IKUData[];
   tahun: number;
