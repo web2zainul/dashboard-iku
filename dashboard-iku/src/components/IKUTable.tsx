@@ -291,7 +291,7 @@ export function IKUTable() {
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
       <div className="p-4 border-b border-gray-100">
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-          DAFTAR REALISASI KINERJA RENJA/RENSTRA {state.tahun}
+          DAFTAR REALISASI KINERJA DAN ANGGARAN
         </h3>
 
         <div className="flex flex-col gap-3">

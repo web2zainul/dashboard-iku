@@ -15,7 +15,7 @@ export function Header() {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
-                DASHBOARD REALISASI KINERJA – RENJA/RENSTRA 2026
+                DASHBOARD REALISASI KINERJA DAN ANGGARAN
               </h1>
               <p className="text-blue-200 text-xs sm:text-sm mt-1">
                 BADAN KEPEGAWAIAN DAN PENGEMBANGAN SUMBER DAYA MANUSIA KOTA CIREBON
