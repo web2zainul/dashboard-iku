@@ -3,13 +3,14 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useDashboard } from '../context/DashboardContext';
-import { getKategori } from '../utils/calculations';
+import { getKategori, isDetailRow } from '../utils/calculations';
 
 export function ExportButtons() {
   const { state } = useDashboard();
+  const detailRows = state.data.filter(isDetailRow);
 
   const exportExcel = () => {
-    const wsData = state.data.map((d, i) => ({
+    const wsData = detailRows.map((d, i) => ({
       No: i + 1,
       Program: d.program,
       Kegiatan: d.kegiatan,
@@ -36,7 +37,7 @@ export function ExportButtons() {
 
   const exportCSV = () => {
     const headers = ['No', 'Program', 'Kegiatan', 'Sub Kegiatan', 'Indikator Kinerja', 'Satuan', 'Target Tahun', 'TW I', 'TW II', 'TW III', 'TW IV', 'Realisasi Tahun', '% Capaian', 'Target Anggaran', 'Realisasi Anggaran', '% Anggaran', 'Status'];
-    const rows = state.data.map((d, i) => [
+    const rows = detailRows.map((d, i) => [
       i + 1, d.program, d.kegiatan, d.subKegiatan, d.indikator, d.satuan,
       d.targetTahun, d.realisasiTW1 ?? '-', d.realisasiTW2 ?? '-', d.realisasiTW3 ?? '-', d.realisasiTW4 ?? '-',
       d.realisasiTahun, d.persentase.toFixed(2) + '%',

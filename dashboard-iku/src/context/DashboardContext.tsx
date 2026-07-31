@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import type { DashboardState, IKUData } from '../types';
 import { sampleData } from '../utils/sampleData';
 import { parseRenjaExcel } from '../utils/excelParser';
+import { computeAggregate, isDetailRow } from '../utils/calculations';
 import { supabase } from '../lib/supabase';
 
 type DashboardAction =
@@ -109,6 +110,7 @@ function toDb(row: Partial<IKUData>) {
     target_anggaran: row.targetAnggaran,
     realisasi_anggaran: row.realisasiAnggaran,
     tahun: row.tahun,
+    level: row.level ?? 3,
   };
 }
 
@@ -140,7 +142,89 @@ function fromDb(row: Record<string, unknown>): IKUData {
     realisasiAnggaran,
     persentaseAnggaran: targetAnggaran > 0 ? (realisasiAnggaran / targetAnggaran) * 100 : 0,
     tahun: (row.tahun as number) ?? 2026,
+    level: (row.level as number) ?? 3,
   };
+}
+
+function makeGroupRecord(opts: { program: string; kegiatan: string; subKegiatan: string; level: number; items: IKUData[]; tahun: number }): IKUData {
+  const agg = computeAggregate(opts.items);
+  return {
+    id: 0,
+    program: opts.program,
+    kegiatan: opts.kegiatan,
+    subKegiatan: opts.subKegiatan,
+    indikator: '',
+    satuan: '',
+    targetRenstra: agg.targetRenstra,
+    targetTahun: agg.targetTahun,
+    realisasiTW1: agg.realisasiTW1,
+    realisasiTW2: agg.realisasiTW2,
+    realisasiTW3: agg.realisasiTW3,
+    realisasiTW4: agg.realisasiTW4,
+    realisasiTahun: agg.realisasiTahun,
+    persentase: agg.persentase,
+    targetAnggaran: agg.targetAnggaran,
+    realisasiAnggaran: agg.realisasiAnggaran,
+    persentaseAnggaran: agg.persentaseAnggaran,
+    tahun: opts.tahun,
+    level: opts.level,
+  };
+}
+
+async function ensureGroupRows(allRows: IKUData[]): Promise<IKUData[]> {
+  const details = allRows.filter(isDetailRow);
+  const groups = allRows.filter(d => !isDetailRow(d));
+
+  const exists = (level: number, program: string, kegiatan: string, subKegiatan: string) =>
+    groups.some(g => g.level === level && g.program === program && g.kegiatan === kegiatan && g.subKegiatan === subKegiatan);
+
+  const programMap = new Map<string, Map<string, Map<string, IKUData[]>>>();
+  for (const item of details) {
+    const prog = item.program || 'Lainnya';
+    const keg = item.kegiatan || 'Lainnya';
+    const sub = item.subKegiatan || 'Lainnya';
+    if (!programMap.has(prog)) programMap.set(prog, new Map());
+    if (!programMap.get(prog)!.has(keg)) programMap.get(prog)!.set(keg, new Map());
+    if (!programMap.get(prog)!.get(keg)!.has(sub)) programMap.get(prog)!.get(keg)!.set(sub, []);
+    programMap.get(prog)!.get(keg)!.get(sub)!.push(item);
+  }
+
+  const tahun = details[0]?.tahun ?? 2026;
+  const newGroups: IKUData[] = [];
+
+  for (const [prog, kegMap] of programMap) {
+    const progItems: IKUData[] = [];
+    for (const [, subMap] of kegMap) {
+      for (const [, items] of subMap) progItems.push(...items);
+    }
+    if (!exists(0, prog, '', '')) {
+      newGroups.push(makeGroupRecord({ program: prog, kegiatan: '', subKegiatan: '', level: 0, items: progItems, tahun }));
+    }
+    for (const [keg, subMap] of kegMap) {
+      const kegItems: IKUData[] = [];
+      for (const [, items] of subMap) kegItems.push(...items);
+      if (!exists(1, prog, keg, '')) {
+        newGroups.push(makeGroupRecord({ program: prog, kegiatan: keg, subKegiatan: '', level: 1, items: kegItems, tahun }));
+      }
+      for (const [sub, items] of subMap) {
+        if (!exists(2, prog, keg, sub)) {
+          newGroups.push(makeGroupRecord({ program: prog, kegiatan: keg, subKegiatan: sub, level: 2, items, tahun }));
+        }
+      }
+    }
+  }
+
+  if (newGroups.length === 0) return allRows;
+  try {
+    const dbRows = newGroups.map(g => toDb(g));
+    const { data, error } = await supabase.from('iku_data').insert(dbRows).select();
+    if (error) throw error;
+    const inserted = (data ?? []).map(fromDb);
+    return [...allRows, ...inserted];
+  } catch (err) {
+    console.error('ensureGroupRows insert error:', err);
+    return allRows;
+  }
 }
 
 interface DashboardContextType {
@@ -157,6 +241,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     async function loadData() {
+      let rows: IKUData[] | null = null;
+
       try {
         const { data, error } = await supabase
           .from('iku_data')
@@ -164,35 +250,38 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           .order('id');
 
         if (error) throw error;
-
         if (data && data.length > 0) {
-          const mapped = data.map(fromDb);
-          dispatch({ type: 'SET_DATA', payload: mapped });
-          setSupabaseLoaded(true);
-          return;
+          rows = data.map(fromDb);
         }
       } catch (err) {
         console.error('Supabase load error:', err);
       }
 
-      // Fallback: load from Excel
-      try {
-        const res = await fetch('/RENJA-2026-1.xlsx');
-        const buf = await res.arrayBuffer();
-        const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
-        const parsed = parseRenjaExcel(wb);
-        if (parsed.length > 0) {
-          dispatch({ type: 'SET_DATA', payload: parsed });
-          // Auto-save to Supabase for next time
-          try {
-            const dbRows = parsed.map(d => toDb(d));
-            await supabase.from('iku_data').insert(dbRows);
-          } catch (e) {
-            // Supabase not configured yet - ignore
+      if (!rows) {
+        // Fallback: load from Excel
+        try {
+          const res = await fetch('/RENJA-2026-1.xlsx');
+          const buf = await res.arrayBuffer();
+          const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+          const parsed = parseRenjaExcel(wb);
+          if (parsed.length > 0) {
+            rows = parsed;
+            // Auto-save to Supabase for next time
+            try {
+              const dbRows = parsed.map(d => toDb(d));
+              await supabase.from('iku_data').insert(dbRows);
+            } catch (e) {
+              // Supabase not configured yet - ignore
+            }
           }
+        } catch (err) {
+          console.error('Gagal load data:', err);
         }
-      } catch (err) {
-        console.error('Gagal load data:', err);
+      }
+
+      if (rows) {
+        rows = await ensureGroupRows(rows);
+        dispatch({ type: 'SET_DATA', payload: rows });
       }
       setSupabaseLoaded(true);
     }

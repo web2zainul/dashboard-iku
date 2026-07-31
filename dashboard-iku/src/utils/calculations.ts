@@ -30,6 +30,38 @@ export function getKategoriTextColor(k: KategoriCapaian): string {
   }
 }
 
+export const LEVEL_PROGRAM = 0;
+export const LEVEL_KEGIATAN = 1;
+export const LEVEL_SUB_KEGIATAN = 2;
+export const LEVEL_DETAIL = 3;
+
+export function isDetailRow(d: IKUData): boolean {
+  return (d.level ?? LEVEL_DETAIL) >= LEVEL_DETAIL;
+}
+
+export function computeAggregate(items: IKUData[]) {
+  const a = {
+    targetRenstra: 0, targetTahun: 0,
+    realisasiTW1: 0, realisasiTW2: 0, realisasiTW3: 0, realisasiTW4: 0,
+    realisasiTahun: 0, persentase: 0,
+    targetAnggaran: 0, realisasiAnggaran: 0, persentaseAnggaran: 0,
+  };
+  for (const d of items) {
+    a.targetRenstra += d.targetRenstra;
+    a.targetTahun += d.targetTahun;
+    a.realisasiTW1 += d.realisasiTW1 ?? 0;
+    a.realisasiTW2 += d.realisasiTW2 ?? 0;
+    a.realisasiTW3 += d.realisasiTW3 ?? 0;
+    a.realisasiTW4 += d.realisasiTW4 ?? 0;
+    a.targetAnggaran += d.targetAnggaran;
+    a.realisasiAnggaran += d.realisasiAnggaran;
+  }
+  a.realisasiTahun = a.realisasiTW1 + a.realisasiTW2 + a.realisasiTW3 + a.realisasiTW4;
+  a.persentase = a.targetTahun > 0 ? (a.realisasiTahun / a.targetTahun) * 100 : 0;
+  a.persentaseAnggaran = a.targetAnggaran > 0 ? (a.realisasiAnggaran / a.targetAnggaran) * 100 : 0;
+  return a;
+}
+
 export function getStatusText(persentase: number): string {
   if (persentase >= 90) return 'Sangat Baik';
   if (persentase >= 50) return 'Baik';
@@ -52,6 +84,7 @@ export function formatNumber(val: number): string {
 }
 
 export function getRealisasiForTriwulan(data: IKUData[], triwulan: string): number {
+  data = data.filter(isDetailRow);
   if (triwulan === 'Semua Triwulan') {
     return data.length > 0
       ? Math.round((data.reduce((sum, d) => sum + d.persentase, 0) / data.length) * 100) / 100
@@ -84,6 +117,7 @@ export function triwulanIndex(triwulan: string): number {
 }
 
 export function calculateKPI(data: IKUData[]): KPIResult {
+  data = data.filter(isDetailRow);
   const totalIndikator = data.length;
   const totalTarget = data.filter(d => d.targetTahun > 0).length;
   const rataRataCapaian = data.length > 0
@@ -96,6 +130,7 @@ export function calculateKPI(data: IKUData[]): KPIResult {
 }
 
 export function calculateDistribution(data: IKUData[]): DistributionItem[] {
+  data = data.filter(isDetailRow);
   const total = data.length;
   const sangatBaik = data.filter(d => d.persentase >= 90).length;
   const baik = data.filter(d => d.persentase >= 50 && d.persentase < 90).length;
@@ -109,6 +144,7 @@ export function calculateDistribution(data: IKUData[]): DistributionItem[] {
 }
 
 export function calculateQuarterlyAverages(data: IKUData[]): { triwulan: string; rataRata: number | null }[] {
+  data = data.filter(isDetailRow);
   const calc = (vals: (number | null)[]) => {
     const valid = data.filter((_, i) => vals[i] !== null && vals[i] !== undefined && data[i].targetTahun > 0);
     if (valid.length === 0) return null;
@@ -127,6 +163,7 @@ export function calculateQuarterlyAverages(data: IKUData[]): { triwulan: string;
 }
 
 export function calculateBudgetQuarterly(data: IKUData[]): { triwulan: string; anggaran: number }[] {
+  data = data.filter(isDetailRow);
   const tw1 = data.reduce((s, d) => s + (d.realisasiTW1 !== null && d.targetTahun > 0 ? (d.realisasiTW1 / d.targetTahun) * d.targetAnggaran : 0), 0);
   const tw2 = data.reduce((s, d) => s + (d.realisasiTW2 !== null && d.targetTahun > 0 ? (d.realisasiTW2 / d.targetTahun) * d.targetAnggaran : 0), 0);
   const tw3 = data.reduce((s, d) => s + (d.realisasiTW3 !== null && d.targetTahun > 0 ? (d.realisasiTW3 / d.targetTahun) * d.targetAnggaran : 0), 0);
@@ -140,24 +177,25 @@ export function calculateBudgetQuarterly(data: IKUData[]): { triwulan: string; a
 }
 
 export function getTopFive(data: IKUData[]): IKUData[] {
-  return [...data].sort((a, b) => b.persentase - a.persentase).slice(0, 5);
+  return [...data.filter(isDetailRow)].sort((a, b) => b.persentase - a.persentase).slice(0, 5);
 }
 
 export function getBottomFive(data: IKUData[]): IKUData[] {
-  return [...data].sort((a, b) => a.persentase - b.persentase).slice(0, 5);
+  return [...data.filter(isDetailRow)].sort((a, b) => a.persentase - b.persentase).slice(0, 5);
 }
 
 export function getUniquePrograms(data: IKUData[]): string[] {
-  return [...new Set(data.map(d => d.program).filter(Boolean))];
+  return [...new Set(data.filter(isDetailRow).map(d => d.program).filter(Boolean))];
 }
 
 export function getUniqueKegiatan(data: IKUData[], program?: string): string[] {
-  const filtered = program ? data.filter(d => d.program === program) : data;
-  return [...new Set(filtered.map(d => d.kegiatan).filter(Boolean))];
+  const filtered = data.filter(isDetailRow);
+  const scoped = program ? filtered.filter(d => d.program === program) : filtered;
+  return [...new Set(scoped.map(d => d.kegiatan).filter(Boolean))];
 }
 
 export function getUniqueSubKegiatan(data: IKUData[], program?: string, kegiatan?: string): string[] {
-  let filtered = data;
+  let filtered = data.filter(isDetailRow);
   if (program) filtered = filtered.filter(d => d.program === program);
   if (kegiatan) filtered = filtered.filter(d => d.kegiatan === kegiatan);
   return [...new Set(filtered.map(d => d.subKegiatan).filter(Boolean))];

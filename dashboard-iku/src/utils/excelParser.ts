@@ -167,6 +167,7 @@ function buildIndicator(
     realisasiAnggaran,
     persentaseAnggaran,
     tahun: 2026,
+    level: 3,
   };
 }
 
@@ -228,6 +229,7 @@ function parseGenericFormat(workbook: XLSX.WorkBook): IKUData[] {
       realisasiAnggaran,
       persentaseAnggaran,
       tahun: 2026,
+      level: 3,
     });
   }
 

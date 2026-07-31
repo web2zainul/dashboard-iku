@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS iku_data (
   target_anggaran NUMERIC DEFAULT 0,
   realisasi_anggaran NUMERIC DEFAULT 0,
   tahun           INTEGER DEFAULT 2026,
+  level           INTEGER DEFAULT 3,
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   updated_at      TIMESTAMPTZ DEFAULT NOW()
 );

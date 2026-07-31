@@ -2,8 +2,22 @@ import { useState, useMemo, useCallback } from 'react';
 import { Search, ChevronUp, ChevronDown, Eye, Pencil, Check, X, Plus, Trash2 } from 'lucide-react';
 import { useDashboard, toDb, fromDb } from '../context/DashboardContext';
 import { supabase } from '../lib/supabase';
-import { getKategori, getKategoriColor, getKategoriBgColor, getKategoriTextColor, formatNumber, formatRupiahFull } from '../utils/calculations';
+import { getKategori, getKategoriColor, getKategoriBgColor, getKategoriTextColor, formatNumber, formatRupiahFull, computeAggregate, isDetailRow } from '../utils/calculations';
 import type { IKUData } from '../types';
+
+type GroupAgg = {
+  targetRenstra: number;
+  targetTahun: number;
+  realisasiTW1: number;
+  realisasiTW2: number;
+  realisasiTW3: number;
+  realisasiTW4: number;
+  realisasiTahun: number;
+  persentase: number;
+  targetAnggaran: number;
+  realisasiAnggaran: number;
+  persentaseAnggaran: number;
+};
 
 interface GroupedRow {
   type: 'program' | 'kegiatan' | 'subKegiatan' | 'data';
@@ -11,13 +25,21 @@ interface GroupedRow {
   depth: number;
   data?: IKUData;
   cat?: ReturnType<typeof getKategori>;
+  agg?: GroupAgg;
+  children?: IKUData[];
+  program?: string;
+  kegiatan?: string;
+  subKegiatan?: string;
+  record?: IKUData | null;
 }
 
 function buildHierarchicalRows(data: IKUData[]): GroupedRow[] {
   const rows: GroupedRow[] = [];
   const programMap = new Map<string, Map<string, Map<string, IKUData[]>>>();
+  const groupRecords = data.filter(d => !isDetailRow(d));
 
   for (const item of data) {
+    if (!isDetailRow(item)) continue;
     const prog = item.program || 'Lainnya';
     const keg = item.kegiatan || 'Lainnya';
     const sub = item.subKegiatan || 'Lainnya';
@@ -27,12 +49,25 @@ function buildHierarchicalRows(data: IKUData[]): GroupedRow[] {
     programMap.get(prog)!.get(keg)!.get(sub)!.push(item);
   }
 
+  const findRecord = (level: number, program: string, kegiatan: string, subKegiatan: string) =>
+    groupRecords.find(r => r.level === level && r.program === program && r.kegiatan === kegiatan && r.subKegiatan === subKegiatan) ?? null;
+  const aggFor = (items: IKUData[], record: IKUData | null) => record ? computeAggregate([record]) : computeAggregate(items);
+
   for (const [prog, kegMap] of programMap) {
-    rows.push({ type: 'program', label: prog, depth: 0 });
+    const progItems: IKUData[] = [];
+    for (const [, subMap] of kegMap) {
+      for (const [, items] of subMap) progItems.push(...items);
+    }
+    const rec = findRecord(0, prog, '', '');
+    rows.push({ type: 'program', label: prog, depth: 0, agg: aggFor(progItems, rec), children: progItems, program: prog, kegiatan: '', subKegiatan: '', record: rec });
     for (const [keg, subMap] of kegMap) {
-      rows.push({ type: 'kegiatan', label: keg, depth: 1 });
+      const kegItems: IKUData[] = [];
+      for (const [, items] of subMap) kegItems.push(...items);
+      const kegRec = findRecord(1, prog, keg, '');
+      rows.push({ type: 'kegiatan', label: keg, depth: 1, agg: aggFor(kegItems, kegRec), children: kegItems, program: prog, kegiatan: keg, subKegiatan: '', record: kegRec });
       for (const [sub, items] of subMap) {
-        rows.push({ type: 'subKegiatan', label: sub, depth: 2 });
+        const subRec = findRecord(2, prog, keg, sub);
+        rows.push({ type: 'subKegiatan', label: sub, depth: 2, agg: aggFor(items, subRec), children: items, program: prog, kegiatan: keg, subKegiatan: sub, record: subRec });
         for (const item of items) {
           rows.push({ type: 'data', label: '', depth: 3, data: item, cat: getKategori(item.persentase) });
         }
@@ -52,6 +87,8 @@ export function IKUTable() {
 
   const startEdit = useCallback((item: IKUData) => {
     setEditingId(item.id);
+    setEditingGroup(null);
+    setEditGroupData(null);
     setEditData({
       program: item.program,
       kegiatan: item.kegiatan,
@@ -89,6 +126,92 @@ export function IKUTable() {
     setEditingId(null);
     setEditData({});
   }, [editingId, editData, dispatch]);
+
+  const [editingGroup, setEditingGroup] = useState<{
+    type: 'program' | 'kegiatan' | 'subKegiatan';
+    level: number;
+    program: string;
+    kegiatan: string;
+    subKegiatan: string;
+    id: number | null;
+  } | null>(null);
+  const [editGroupData, setEditGroupData] = useState<GroupAgg | null>(null);
+
+  const startEditGroup = useCallback((row: GroupedRow) => {
+    if (!row.agg || row.type === 'data') return;
+    const level = row.type === 'program' ? 0 : row.type === 'kegiatan' ? 1 : 2;
+    setEditingGroup({
+      type: row.type,
+      level,
+      program: row.program ?? row.label,
+      kegiatan: row.kegiatan ?? '',
+      subKegiatan: row.subKegiatan ?? '',
+      id: row.record?.id ?? null,
+    });
+    setEditGroupData({ ...row.agg });
+    setEditingId(null);
+    setEditData({});
+  }, []);
+
+  const cancelEditGroup = useCallback(() => {
+    setEditingGroup(null);
+    setEditGroupData(null);
+  }, []);
+
+  const updateEditGroupField = useCallback((field: string, value: string) => {
+    setEditGroupData(prev => {
+      if (!prev) return prev;
+      const next = { ...prev, [field]: value === '' ? 0 : Number(value) };
+      next.realisasiTahun = next.realisasiTW1 + next.realisasiTW2 + next.realisasiTW3 + next.realisasiTW4;
+      next.persentase = next.targetTahun > 0 ? (next.realisasiTahun / next.targetTahun) * 100 : 0;
+      next.persentaseAnggaran = next.targetAnggaran > 0 ? (next.realisasiAnggaran / next.targetAnggaran) * 100 : 0;
+      return next;
+    });
+  }, []);
+
+  const saveEditGroup = useCallback(async () => {
+    if (!editingGroup || !editGroupData) return;
+    const agg = editGroupData;
+    const record: IKUData = {
+      id: editingGroup.id ?? 0,
+      program: editingGroup.program,
+      kegiatan: editingGroup.kegiatan,
+      subKegiatan: editingGroup.subKegiatan,
+      indikator: '',
+      satuan: '',
+      targetRenstra: agg.targetRenstra,
+      targetTahun: agg.targetTahun,
+      realisasiTW1: agg.realisasiTW1,
+      realisasiTW2: agg.realisasiTW2,
+      realisasiTW3: agg.realisasiTW3,
+      realisasiTW4: agg.realisasiTW4,
+      realisasiTahun: agg.realisasiTahun,
+      persentase: agg.persentase,
+      targetAnggaran: agg.targetAnggaran,
+      realisasiAnggaran: agg.realisasiAnggaran,
+      persentaseAnggaran: agg.persentaseAnggaran,
+      tahun: state.tahun,
+      level: editingGroup.level,
+    };
+    try {
+      const dbFields = toDb(record);
+      const clean = Object.fromEntries(Object.entries(dbFields).filter(([_, v]) => v !== undefined));
+      if (editingGroup.id !== null) {
+        await supabase.from('iku_data').update(clean).eq('id', editingGroup.id);
+        dispatch({ type: 'UPDATE_ROW', payload: { id: editingGroup.id, changes: record } });
+      } else {
+        const { data, error } = await supabase.from('iku_data').insert(clean).select();
+        if (error) throw error;
+        if (data?.[0]) {
+          dispatch({ type: 'ADD_ROW', payload: fromDb(data[0]) });
+        }
+      }
+    } catch (err) {
+      console.error('Supabase group save error:', err);
+    }
+    setEditingGroup(null);
+    setEditGroupData(null);
+  }, [editingGroup, editGroupData, state.tahun, dispatch]);
 
   const stringFields = ['program', 'kegiatan', 'subKegiatan', 'indikator', 'satuan'];
   const updateEditField = useCallback((field: string, value: string) => {
@@ -152,13 +275,13 @@ export function IKUTable() {
 
   const kategoriFilters = ['Semua', 'Sangat Baik', 'Baik', 'Kurang'];
 
-  const programs = useMemo(() => [...new Set(state.data.map(d => d.program).filter(Boolean))], [state.data]);
+  const programs = useMemo(() => [...new Set(state.data.filter(isDetailRow).map(d => d.program).filter(Boolean))], [state.data]);
   const kegiatanList = useMemo(() => {
-    const filtered = state.filterProgram !== 'Semua' ? state.data.filter(d => d.program === state.filterProgram) : state.data;
+    const filtered = state.filterProgram !== 'Semua' ? state.data.filter(d => isDetailRow(d) && d.program === state.filterProgram) : state.data.filter(isDetailRow);
     return [...new Set(filtered.map(d => d.kegiatan).filter(Boolean))];
   }, [state.data, state.filterProgram]);
   const subKegiatanList = useMemo(() => {
-    let filtered = state.data;
+    let filtered = state.data.filter(isDetailRow);
     if (state.filterProgram !== 'Semua') filtered = filtered.filter(d => d.program === state.filterProgram);
     if (state.filterKegiatan !== 'Semua') filtered = filtered.filter(d => d.kegiatan === state.filterKegiatan);
     return [...new Set(filtered.map(d => d.subKegiatan).filter(Boolean))];
@@ -211,7 +334,7 @@ export function IKUTable() {
             <button
               onClick={async () => {
                 try {
-                  const { data } = await supabase.from('iku_data').insert({ tahun: state.tahun }).select();
+                  const { data } = await supabase.from('iku_data').insert({ tahun: state.tahun, level: 3 }).select();
                   if (data?.[0]) dispatch({ type: 'ADD_ROW', payload: fromDb(data[0]) });
                 } catch (err) { console.error('Supabase insert error:', err); }
               }}
@@ -288,31 +411,169 @@ export function IKUTable() {
           <tbody className="divide-y divide-gray-50">
             {hierarchicalRows.map((row, idx) => {
               if (row.type === 'program') {
+                const isGroupEditing = editingGroup?.type === 'program' && editingGroup.program === row.program;
+                const agg = (isGroupEditing && editGroupData ? editGroupData : row.agg)!;
+                const gc = getKategori(agg.persentase);
+                const gNumInputClass = "w-full px-0.5 py-0.5 text-[9px] text-right border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none bg-yellow-50";
                 return (
                   <tr key={`prog-${idx}`} className="bg-[#0f2358]/5 border-b border-gray-200">
                     <td className="px-0.5 py-1" />
-                    <td className="px-1 py-1 font-bold text-[#0f2358] whitespace-nowrap" colSpan={16}>
-                      {row.label}
+                    <td className="px-1 py-1 font-bold text-[#0f2358] whitespace-nowrap">{row.label}</td>
+                    <td className="px-1 py-1 text-gray-400 text-[8px]">-</td>
+                    <td className="px-0.5 py-1 text-center text-gray-400 text-[8px]">-</td>
+                    <td className="px-0.5 py-1 text-right text-gray-700 font-semibold">
+                      {isGroupEditing ? <input type="number" value={agg.targetTahun} onChange={e => updateEditGroupField('targetTahun', e.target.value)} className={gNumInputClass} /> : formatNumber(agg.targetTahun)}
+                    </td>
+                    <td className="px-0.5 py-1 text-center">
+                      {isGroupEditing ? <input type="number" value={agg.realisasiTW1} onChange={e => updateEditGroupField('realisasiTW1', e.target.value)} className={gNumInputClass} /> : agg.realisasiTW1 > 0 ? formatNumber(agg.realisasiTW1) : '-'}
+                    </td>
+                    <td className="px-0.5 py-1 text-center">
+                      {isGroupEditing ? <input type="number" value={agg.realisasiTW2} onChange={e => updateEditGroupField('realisasiTW2', e.target.value)} className={gNumInputClass} /> : agg.realisasiTW2 > 0 ? formatNumber(agg.realisasiTW2) : '-'}
+                    </td>
+                    <td className="px-0.5 py-1 text-center">
+                      {isGroupEditing ? <input type="number" value={agg.realisasiTW3} onChange={e => updateEditGroupField('realisasiTW3', e.target.value)} className={gNumInputClass} /> : agg.realisasiTW3 > 0 ? formatNumber(agg.realisasiTW3) : '-'}
+                    </td>
+                    <td className="px-0.5 py-1 text-center">
+                      {isGroupEditing ? <input type="number" value={agg.realisasiTW4} onChange={e => updateEditGroupField('realisasiTW4', e.target.value)} className={gNumInputClass} /> : agg.realisasiTW4 > 0 ? formatNumber(agg.realisasiTW4) : '-'}
+                    </td>
+                    <td className="px-0.5 py-1 text-right font-semibold">{formatNumber(agg.realisasiTahun)}</td>
+                    <td className="px-0.5 py-1 text-center font-semibold" style={{ color: getKategoriColor(gc) }}>{agg.persentase.toFixed(2)}%</td>
+                    <td className="px-0.5 py-1">
+                      <div className="w-full bg-gray-100 rounded-full h-1">
+                        <div className="h-1 rounded-full" style={{ width: `${Math.min(agg.persentase, 100)}%`, backgroundColor: getKategoriColor(gc) }} />
+                      </div>
+                    </td>
+                    <td className="px-0.5 py-1 text-right">{isGroupEditing ? <input type="number" value={agg.targetAnggaran} onChange={e => updateEditGroupField('targetAnggaran', e.target.value)} className={`${gNumInputClass} text-right`} /> : formatRupiahFull(agg.targetAnggaran)}</td>
+                    <td className="px-0.5 py-1 text-right">{isGroupEditing ? <input type="number" value={agg.realisasiAnggaran} onChange={e => updateEditGroupField('realisasiAnggaran', e.target.value)} className={`${gNumInputClass} text-right`} /> : formatRupiahFull(agg.realisasiAnggaran)}</td>
+                    <td className="px-0.5 py-1 text-center font-medium">{agg.persentaseAnggaran.toFixed(1)}%</td>
+                    <td className="px-0.5 py-1 text-center">
+                      <span className="px-1 py-0.5 rounded-full text-[8px] font-semibold whitespace-nowrap" style={{ backgroundColor: getKategoriBgColor(gc), color: getKategoriTextColor(gc) }}>
+                        {getKategori(agg.persentase)}
+                      </span>
+                    </td>
+                    <td className="px-0.5 py-1 text-center">
+                      <div className="flex items-center justify-center gap-0.5">
+                        {isGroupEditing ? (
+                          <>
+                            <button onClick={saveEditGroup} className="p-0.5 hover:bg-green-100 rounded transition-colors" title="Simpan"><Check className="w-2.5 h-2.5 text-green-600" /></button>
+                            <button onClick={cancelEditGroup} className="p-0.5 hover:bg-red-100 rounded transition-colors" title="Batal"><X className="w-2.5 h-2.5 text-red-500" /></button>
+                          </>
+                        ) : (
+                          <button onClick={() => startEditGroup(row)} className="p-0.5 hover:bg-yellow-50 rounded transition-colors" title="Edit Group"><Pencil className="w-2.5 h-2.5 text-yellow-500" /></button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
               }
               if (row.type === 'kegiatan') {
+                const isGroupEditing = editingGroup?.type === 'kegiatan' && editingGroup.program === row.program && editingGroup.kegiatan === row.kegiatan;
+                const agg = (isGroupEditing && editGroupData ? editGroupData : row.agg)!;
+                const gc = getKategori(agg.persentase);
+                const gNumInputClass = "w-full px-0.5 py-0.5 text-[9px] text-right border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none bg-yellow-50";
                 return (
                   <tr key={`keg-${idx}`} className="bg-blue-50/50 border-b border-gray-100">
                     <td className="px-0.5 py-0.5" />
-                    <td className="px-1 py-0.5 pl-4 font-semibold text-gray-700 whitespace-nowrap" colSpan={16}>
-                      {row.label}
+                    <td className="px-1 py-0.5 pl-4 font-semibold text-gray-700 whitespace-nowrap">{row.label}</td>
+                    <td className="px-1 py-0.5 text-gray-400 text-[8px]">-</td>
+                    <td className="px-0.5 py-0.5 text-center text-gray-400 text-[8px]">-</td>
+                    <td className="px-0.5 py-0.5 text-right text-gray-700 font-semibold">
+                      {isGroupEditing ? <input type="number" value={agg.targetTahun} onChange={e => updateEditGroupField('targetTahun', e.target.value)} className={gNumInputClass} /> : formatNumber(agg.targetTahun)}
+                    </td>
+                    <td className="px-0.5 py-0.5 text-center">
+                      {isGroupEditing ? <input type="number" value={agg.realisasiTW1} onChange={e => updateEditGroupField('realisasiTW1', e.target.value)} className={gNumInputClass} /> : agg.realisasiTW1 > 0 ? formatNumber(agg.realisasiTW1) : '-'}
+                    </td>
+                    <td className="px-0.5 py-0.5 text-center">
+                      {isGroupEditing ? <input type="number" value={agg.realisasiTW2} onChange={e => updateEditGroupField('realisasiTW2', e.target.value)} className={gNumInputClass} /> : agg.realisasiTW2 > 0 ? formatNumber(agg.realisasiTW2) : '-'}
+                    </td>
+                    <td className="px-0.5 py-0.5 text-center">
+                      {isGroupEditing ? <input type="number" value={agg.realisasiTW3} onChange={e => updateEditGroupField('realisasiTW3', e.target.value)} className={gNumInputClass} /> : agg.realisasiTW3 > 0 ? formatNumber(agg.realisasiTW3) : '-'}
+                    </td>
+                    <td className="px-0.5 py-0.5 text-center">
+                      {isGroupEditing ? <input type="number" value={agg.realisasiTW4} onChange={e => updateEditGroupField('realisasiTW4', e.target.value)} className={gNumInputClass} /> : agg.realisasiTW4 > 0 ? formatNumber(agg.realisasiTW4) : '-'}
+                    </td>
+                    <td className="px-0.5 py-0.5 text-right font-semibold">{formatNumber(agg.realisasiTahun)}</td>
+                    <td className="px-0.5 py-0.5 text-center font-semibold" style={{ color: getKategoriColor(gc) }}>{agg.persentase.toFixed(2)}%</td>
+                    <td className="px-0.5 py-0.5">
+                      <div className="w-full bg-gray-100 rounded-full h-1">
+                        <div className="h-1 rounded-full" style={{ width: `${Math.min(agg.persentase, 100)}%`, backgroundColor: getKategoriColor(gc) }} />
+                      </div>
+                    </td>
+                    <td className="px-0.5 py-0.5 text-right">{isGroupEditing ? <input type="number" value={agg.targetAnggaran} onChange={e => updateEditGroupField('targetAnggaran', e.target.value)} className={`${gNumInputClass} text-right`} /> : formatRupiahFull(agg.targetAnggaran)}</td>
+                    <td className="px-0.5 py-0.5 text-right">{isGroupEditing ? <input type="number" value={agg.realisasiAnggaran} onChange={e => updateEditGroupField('realisasiAnggaran', e.target.value)} className={`${gNumInputClass} text-right`} /> : formatRupiahFull(agg.realisasiAnggaran)}</td>
+                    <td className="px-0.5 py-0.5 text-center font-medium">{agg.persentaseAnggaran.toFixed(1)}%</td>
+                    <td className="px-0.5 py-0.5 text-center">
+                      <span className="px-1 py-0.5 rounded-full text-[8px] font-semibold whitespace-nowrap" style={{ backgroundColor: getKategoriBgColor(gc), color: getKategoriTextColor(gc) }}>
+                        {getKategori(agg.persentase)}
+                      </span>
+                    </td>
+                    <td className="px-0.5 py-0.5 text-center">
+                      <div className="flex items-center justify-center gap-0.5">
+                        {isGroupEditing ? (
+                          <>
+                            <button onClick={saveEditGroup} className="p-0.5 hover:bg-green-100 rounded transition-colors" title="Simpan"><Check className="w-2.5 h-2.5 text-green-600" /></button>
+                            <button onClick={cancelEditGroup} className="p-0.5 hover:bg-red-100 rounded transition-colors" title="Batal"><X className="w-2.5 h-2.5 text-red-500" /></button>
+                          </>
+                        ) : (
+                          <button onClick={() => startEditGroup(row)} className="p-0.5 hover:bg-yellow-50 rounded transition-colors" title="Edit Group"><Pencil className="w-2.5 h-2.5 text-yellow-500" /></button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
               }
               if (row.type === 'subKegiatan') {
+                const isGroupEditing = editingGroup?.type === 'subKegiatan' && editingGroup.program === row.program && editingGroup.kegiatan === row.kegiatan && editingGroup.subKegiatan === row.subKegiatan;
+                const agg = (isGroupEditing && editGroupData ? editGroupData : row.agg)!;
+                const gc = getKategori(agg.persentase);
+                const gNumInputClass = "w-full px-0.5 py-0.5 text-[9px] text-right border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none bg-yellow-50";
                 return (
                   <tr key={`sub-${idx}`} className="bg-gray-50/50 border-b border-gray-100">
                     <td className="px-0.5 py-0.5" />
-                    <td className="px-1 py-0.5 pl-7 font-medium text-gray-500 italic whitespace-nowrap" colSpan={16}>
-                      {row.label}
+                    <td className="px-1 py-0.5 pl-7 font-medium text-gray-500 italic whitespace-nowrap">{row.label}</td>
+                    <td className="px-1 py-0.5 text-gray-400 text-[8px]">-</td>
+                    <td className="px-0.5 py-0.5 text-center text-gray-400 text-[8px]">-</td>
+                    <td className="px-0.5 py-0.5 text-right font-medium">
+                      {isGroupEditing ? <input type="number" value={agg.targetTahun} onChange={e => updateEditGroupField('targetTahun', e.target.value)} className={gNumInputClass} /> : formatNumber(agg.targetTahun)}
+                    </td>
+                    <td className="px-0.5 py-0.5 text-center">
+                      {isGroupEditing ? <input type="number" value={agg.realisasiTW1} onChange={e => updateEditGroupField('realisasiTW1', e.target.value)} className={gNumInputClass} /> : agg.realisasiTW1 > 0 ? formatNumber(agg.realisasiTW1) : '-'}
+                    </td>
+                    <td className="px-0.5 py-0.5 text-center">
+                      {isGroupEditing ? <input type="number" value={agg.realisasiTW2} onChange={e => updateEditGroupField('realisasiTW2', e.target.value)} className={gNumInputClass} /> : agg.realisasiTW2 > 0 ? formatNumber(agg.realisasiTW2) : '-'}
+                    </td>
+                    <td className="px-0.5 py-0.5 text-center">
+                      {isGroupEditing ? <input type="number" value={agg.realisasiTW3} onChange={e => updateEditGroupField('realisasiTW3', e.target.value)} className={gNumInputClass} /> : agg.realisasiTW3 > 0 ? formatNumber(agg.realisasiTW3) : '-'}
+                    </td>
+                    <td className="px-0.5 py-0.5 text-center">
+                      {isGroupEditing ? <input type="number" value={agg.realisasiTW4} onChange={e => updateEditGroupField('realisasiTW4', e.target.value)} className={gNumInputClass} /> : agg.realisasiTW4 > 0 ? formatNumber(agg.realisasiTW4) : '-'}
+                    </td>
+                    <td className="px-0.5 py-0.5 text-right font-medium">{formatNumber(agg.realisasiTahun)}</td>
+                    <td className="px-0.5 py-0.5 text-center font-semibold" style={{ color: getKategoriColor(gc) }}>{agg.persentase.toFixed(2)}%</td>
+                    <td className="px-0.5 py-0.5">
+                      <div className="w-full bg-gray-100 rounded-full h-1">
+                        <div className="h-1 rounded-full" style={{ width: `${Math.min(agg.persentase, 100)}%`, backgroundColor: getKategoriColor(gc) }} />
+                      </div>
+                    </td>
+                    <td className="px-0.5 py-0.5 text-right">{isGroupEditing ? <input type="number" value={agg.targetAnggaran} onChange={e => updateEditGroupField('targetAnggaran', e.target.value)} className={`${gNumInputClass} text-right`} /> : formatRupiahFull(agg.targetAnggaran)}</td>
+                    <td className="px-0.5 py-0.5 text-right">{isGroupEditing ? <input type="number" value={agg.realisasiAnggaran} onChange={e => updateEditGroupField('realisasiAnggaran', e.target.value)} className={`${gNumInputClass} text-right`} /> : formatRupiahFull(agg.realisasiAnggaran)}</td>
+                    <td className="px-0.5 py-0.5 text-center font-medium">{agg.persentaseAnggaran.toFixed(1)}%</td>
+                    <td className="px-0.5 py-0.5 text-center">
+                      <span className="px-1 py-0.5 rounded-full text-[8px] font-semibold whitespace-nowrap" style={{ backgroundColor: getKategoriBgColor(gc), color: getKategoriTextColor(gc) }}>
+                        {getKategori(agg.persentase)}
+                      </span>
+                    </td>
+                    <td className="px-0.5 py-0.5 text-center">
+                      <div className="flex items-center justify-center gap-0.5">
+                        {isGroupEditing ? (
+                          <>
+                            <button onClick={saveEditGroup} className="p-0.5 hover:bg-green-100 rounded transition-colors" title="Simpan"><Check className="w-2.5 h-2.5 text-green-600" /></button>
+                            <button onClick={cancelEditGroup} className="p-0.5 hover:bg-red-100 rounded transition-colors" title="Batal"><X className="w-2.5 h-2.5 text-red-500" /></button>
+                          </>
+                        ) : (
+                          <button onClick={() => startEditGroup(row)} className="p-0.5 hover:bg-yellow-50 rounded transition-colors" title="Edit Group"><Pencil className="w-2.5 h-2.5 text-yellow-500" /></button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

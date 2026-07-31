@@ -1,6 +1,6 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useDashboard } from '../context/DashboardContext';
-import { calculateDistribution } from '../utils/calculations';
+import { calculateDistribution, isDetailRow } from '../utils/calculations';
 
 type TooltipProps = { active?: boolean; payload?: Array<{ name: string; value: number; payload: { color: string; percentage: number } }> };
 
@@ -20,7 +20,7 @@ const CustomTooltip = ({ active, payload }: TooltipProps) => {
 export function DistributionChart() {
   const { state } = useDashboard();
   const distribution = calculateDistribution(state.data);
-  const total = state.data.length;
+  const total = state.data.filter(isDetailRow).length;
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 card-hover h-full">

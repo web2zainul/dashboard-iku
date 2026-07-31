@@ -17,6 +17,7 @@ export interface IKUData {
   realisasiAnggaran: number;
   persentaseAnggaran: number;
   tahun: number;
+  level: number;
 }
 
 export interface DashboardState {
