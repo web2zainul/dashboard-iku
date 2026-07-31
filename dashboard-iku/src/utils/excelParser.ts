@@ -80,7 +80,7 @@ function parseRenjaFormat(workbook: XLSX.WorkBook): IKUData[] {
       continue;
     }
 
-    if (empty5.startsWith('Kegiatan')) {
+    if (empty5.startsWith('Kegiatan') || empty5.startsWith('Kegiatan ')) {
       currentKegiatan = empty5;
       currentSubKegiatan = '';
       if (empty6 && target > 0) {
@@ -89,9 +89,11 @@ function parseRenjaFormat(workbook: XLSX.WorkBook): IKUData[] {
       continue;
     }
 
-    if (empty5.startsWith('Sub')) {
+    if (empty5.startsWith('Sub Kegiatan') || empty5.startsWith('Sub kegiatan')) {
       currentSubKegiatan = empty5;
-      results.push(buildIndicator(row, id++, currentProgram, currentKegiatan, currentSubKegiatan, DEFAULT_MAPPING_RENJA));
+      if (empty6 && target > 0) {
+        results.push(buildIndicator(row, id++, currentProgram, currentKegiatan, currentSubKegiatan, DEFAULT_MAPPING_RENJA));
+      }
       continue;
     }
 

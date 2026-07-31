@@ -260,7 +260,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       if (!rows) {
         // Fallback: load from Excel
         try {
-          const res = await fetch('/RENJA-2026-1.xlsx?v=2');
+          const res = await fetch('/RENJA-2026-1.xlsx');
           const buf = await res.arrayBuffer();
           const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
           const parsed = parseRenjaExcel(wb);

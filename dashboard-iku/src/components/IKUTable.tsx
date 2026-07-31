@@ -69,7 +69,6 @@ function buildHierarchicalRows(data: IKUData[]): GroupedRow[] {
         const subRec = findRecord(2, prog, keg, sub);
         rows.push({ type: 'subKegiatan', label: sub, depth: 2, agg: aggFor(items, subRec), children: items, program: prog, kegiatan: keg, subKegiatan: sub, record: subRec });
         for (const item of items) {
-          if (!item.indikator && item.targetTahun <= 0 && item.targetAnggaran <= 0) continue;
           rows.push({ type: 'data', label: '', depth: 3, data: item, cat: getKategori(item.persentase) });
         }
       }
