@@ -4,8 +4,6 @@ import { KPICards } from './components/KPICards';
 import { GaugeChart } from './components/GaugeChart';
 import { DistributionChart } from './components/DistributionChart';
 import { QuarterlyTrendChart } from './components/QuarterlyTrendChart';
-import { TopFiveChart } from './components/TopFiveChart';
-import { BottomFiveChart } from './components/BottomFiveChart';
 import { BudgetComparisonChart } from './components/BudgetComparisonChart';
 import { QuarterlyBudgetChart } from './components/QuarterlyBudgetChart';
 import { CategoryLegend } from './components/CategoryLegend';
@@ -31,11 +29,6 @@ function DashboardContent() {
             <GaugeChart />
             <DistributionChart />
             <QuarterlyTrendChart />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <TopFiveChart />
-            <BottomFiveChart />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
