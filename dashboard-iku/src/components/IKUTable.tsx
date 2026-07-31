@@ -418,7 +418,7 @@ export function IKUTable() {
                 return (
                   <tr key={`prog-${idx}`} className="bg-[#0f2358]/5 border-b border-gray-200">
                     <td className="px-0.5 py-1" />
-                    <td className="px-1 py-1 font-bold text-[#0f2358] whitespace-nowrap">{row.label}</td>
+                    <td className="px-1 py-1 font-bold text-[#0f2358] break-words">{row.label}</td>
                     <td className="px-1 py-1 text-gray-400 text-[8px]">-</td>
                     <td className="px-0.5 py-1 text-center text-gray-400 text-[8px]">-</td>
                     <td className="px-0.5 py-1 text-right text-gray-700 font-semibold">
@@ -474,7 +474,7 @@ export function IKUTable() {
                 return (
                   <tr key={`keg-${idx}`} className="bg-blue-50/50 border-b border-gray-100">
                     <td className="px-0.5 py-0.5" />
-                    <td className="px-1 py-0.5 pl-4 font-semibold text-gray-700 whitespace-nowrap">{row.label}</td>
+                    <td className="px-1 py-0.5 pl-4 font-semibold text-gray-700 break-words">{row.label}</td>
                     <td className="px-1 py-0.5 text-gray-400 text-[8px]">-</td>
                     <td className="px-0.5 py-0.5 text-center text-gray-400 text-[8px]">-</td>
                     <td className="px-0.5 py-0.5 text-right text-gray-700 font-semibold">
@@ -530,7 +530,7 @@ export function IKUTable() {
                 return (
                   <tr key={`sub-${idx}`} className="bg-gray-50/50 border-b border-gray-100">
                     <td className="px-0.5 py-0.5" />
-                    <td className="px-1 py-0.5 pl-7 font-medium text-gray-500 italic whitespace-nowrap">{row.label}</td>
+                    <td className="px-1 py-0.5 pl-7 font-medium text-gray-500 italic break-words">{row.label}</td>
                     <td className="px-1 py-0.5 text-gray-400 text-[8px]">-</td>
                     <td className="px-0.5 py-0.5 text-center text-gray-400 text-[8px]">-</td>
                     <td className="px-0.5 py-0.5 text-right font-medium">
@@ -563,18 +563,7 @@ export function IKUTable() {
                         {getKategori(agg.persentase)}
                       </span>
                     </td>
-                    <td className="px-0.5 py-0.5 text-center">
-                      <div className="flex items-center justify-center gap-0.5">
-                        {isGroupEditing ? (
-                          <>
-                            <button onClick={saveEditGroup} className="p-0.5 hover:bg-green-100 rounded transition-colors" title="Simpan"><Check className="w-2.5 h-2.5 text-green-600" /></button>
-                            <button onClick={cancelEditGroup} className="p-0.5 hover:bg-red-100 rounded transition-colors" title="Batal"><X className="w-2.5 h-2.5 text-red-500" /></button>
-                          </>
-                        ) : (
-                          <button onClick={() => startEditGroup(row)} className="p-0.5 hover:bg-yellow-50 rounded transition-colors" title="Edit Group"><Pencil className="w-2.5 h-2.5 text-yellow-500" /></button>
-                        )}
-                      </div>
-                    </td>
+                    <td className="px-0.5 py-0.5 text-center" />
                   </tr>
                 );
               }
@@ -594,7 +583,7 @@ export function IKUTable() {
               return (
                 <tr key={item.id} className={`transition-colors ${isEditing ? 'bg-blue-50/80' : 'hover:bg-gray-50/50'}`}>
                   <td className="px-0.5 py-1 text-gray-400 text-center">{noUrut}</td>
-                  <td className="px-1 py-1 whitespace-nowrap">
+                  <td className="px-1 py-1 break-words">
                     {isEditing ? (
                       <div className="flex flex-col gap-0.5 min-w-[160px]">
                         <input type="text" value={editData.program ?? ''} onChange={e => updateEditField('program', e.target.value)} placeholder="Program" className={textInputClass} />
