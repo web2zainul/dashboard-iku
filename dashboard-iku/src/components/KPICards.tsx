@@ -14,7 +14,7 @@ const kpiConfig: Array<{
   fixedValue?: number;
 }> = [
   { key: 'totalIndikator', label: 'IKU', icon: ClipboardList, color: 'from-[#0f2358] to-[#1a3a8a]', textColor: 'text-blue-100', iconBg: 'bg-white/20', fixedValue: 3 },
-  { key: 'totalTarget', label: 'TOTAL TARGET KINERJA', icon: Target, color: 'from-[#152e6e] to-[#1a3a8a]', textColor: 'text-blue-100', iconBg: 'bg-white/20' },
+  { key: 'totalTarget', label: 'PROGRAM', icon: Target, color: 'from-[#152e6e] to-[#1a3a8a]', textColor: 'text-blue-100', iconBg: 'bg-white/20', fixedValue: 3 },
   { key: 'realisasiKinerja', label: 'REALISASI KINERJA', icon: TrendingUp, color: 'from-emerald-600 to-emerald-700', textColor: 'text-emerald-100', iconBg: 'bg-white/20', suffix: '' },
   { key: 'rataRataCapaian', label: 'RATA-RATA CAPAIAN KINERJA', icon: BarChart3, color: 'from-blue-600 to-blue-700', textColor: 'text-blue-100', iconBg: 'bg-white/20', suffix: '%' },
   { key: 'totalAnggaran', label: 'TOTAL ANGGARAN', icon: Wallet, color: 'from-purple-600 to-purple-700', textColor: 'text-purple-100', iconBg: 'bg-white/20', isRupiah: true },
