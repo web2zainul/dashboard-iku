@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { ClipboardList, Target, TrendingUp, BarChart3, Wallet, Banknote, Percent } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
-import { calculateKPI, formatRupiahFull } from '../utils/calculations';
+import { calculateKPI, formatRupiahFull, isDetailRow } from '../utils/calculations';
 
 const kpiConfig: Array<{
   key: keyof ReturnType<typeof calculateKPI>;
@@ -12,11 +13,12 @@ const kpiConfig: Array<{
   suffix?: string;
   isRupiah?: boolean;
   fixedValue?: number;
+  dynamic?: 'program' | 'kegiatan' | 'subKegiatan';
 }> = [
   { key: 'totalIndikator', label: 'IKU', icon: ClipboardList, color: 'from-[#0f2358] to-[#1a3a8a]', textColor: 'text-blue-100', iconBg: 'bg-white/20', fixedValue: 3 },
-  { key: 'totalTarget', label: 'PROGRAM', icon: Target, color: 'from-[#152e6e] to-[#1a3a8a]', textColor: 'text-blue-100', iconBg: 'bg-white/20', fixedValue: 3 },
-  { key: 'realisasiKinerja', label: 'REALISASI KINERJA', icon: TrendingUp, color: 'from-emerald-600 to-emerald-700', textColor: 'text-emerald-100', iconBg: 'bg-white/20', suffix: '' },
-  { key: 'rataRataCapaian', label: 'RATA-RATA CAPAIAN KINERJA', icon: BarChart3, color: 'from-blue-600 to-blue-700', textColor: 'text-blue-100', iconBg: 'bg-white/20', suffix: '%' },
+  { key: 'totalTarget', label: 'PROGRAM', icon: Target, color: 'from-[#152e6e] to-[#1a3a8a]', textColor: 'text-blue-100', iconBg: 'bg-white/20', dynamic: 'program' },
+  { key: 'realisasiKinerja', label: 'JUMLAH KEGIATAN', icon: TrendingUp, color: 'from-emerald-600 to-emerald-700', textColor: 'text-emerald-100', iconBg: 'bg-white/20', dynamic: 'kegiatan' },
+  { key: 'rataRataCapaian', label: 'JUMLAH SUB KEGIATAN', icon: BarChart3, color: 'from-blue-600 to-blue-700', textColor: 'text-blue-100', iconBg: 'bg-white/20', dynamic: 'subKegiatan' },
   { key: 'totalAnggaran', label: 'TOTAL ANGGARAN', icon: Wallet, color: 'from-purple-600 to-purple-700', textColor: 'text-purple-100', iconBg: 'bg-white/20', isRupiah: true },
   { key: 'realisasiAnggaran', label: 'REALISASI ANGGARAN', icon: Banknote, color: 'from-teal-600 to-teal-700', textColor: 'text-teal-100', iconBg: 'bg-white/20', isRupiah: true },
   { key: 'persentaseAnggaran', label: '% REALISASI ANGGARAN', icon: Percent, color: 'from-amber-500 to-orange-500', textColor: 'text-amber-100', iconBg: 'bg-white/20', suffix: '%' },
@@ -28,21 +30,24 @@ function getAnggaranCategory(pct: number): string {
   return 'RENDAH';
 }
 
-function getKinerjaCategory(pct: number): string {
-  if (pct >= 90) return 'SANGAT BAIK';
-  if (pct >= 50) return 'BAIK';
-  return 'KURANG';
-}
-
 export function KPICards() {
   const { state } = useDashboard();
   const kpi = calculateKPI(state.data);
+
+  const counts = useMemo(() => {
+    const details = state.data.filter(isDetailRow);
+    return {
+      program: new Set(details.map(d => d.program).filter(Boolean)).size,
+      kegiatan: new Set(details.map(d => d.kegiatan).filter(Boolean)).size,
+      subKegiatan: new Set(details.map(d => d.subKegiatan).filter(Boolean)).size,
+    };
+  }, [state.data]);
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
       {kpiConfig.map((config, index) => {
         const Icon = config.icon;
-        const value = config.fixedValue ?? kpi[config.key];
+        const value = config.fixedValue ?? (config.dynamic ? counts[config.dynamic] : kpi[config.key]);
         const displayValue = config.isRupiah
           ? formatRupiahFull(value as number)
           : config.suffix
@@ -66,11 +71,6 @@ export function KPICards() {
             <div className={`text-[10px] ${config.textColor} mt-1 font-medium opacity-90 leading-tight`}>
               {config.label}
             </div>
-            {config.key === 'realisasiKinerja' && (
-              <div className={`text-[10px] ${config.textColor} opacity-75 mt-0.5`}>
-                Kategori: {getKinerjaCategory(kpi.rataRataCapaian)}
-              </div>
-            )}
             {config.key === 'persentaseAnggaran' && (
               <div className={`text-[10px] ${config.textColor} opacity-75 mt-0.5`}>
                 Kategori: {getAnggaranCategory(kpi.persentaseAnggaran)}
