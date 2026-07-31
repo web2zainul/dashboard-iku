@@ -1,8 +1,9 @@
-import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useReducer, useEffect, useState, type ReactNode } from 'react';
 import * as XLSX from 'xlsx';
 import type { DashboardState, IKUData } from '../types';
 import { sampleData } from '../utils/sampleData';
 import { parseRenjaExcel } from '../utils/excelParser';
+import { supabase } from '../lib/supabase';
 
 type DashboardAction =
   | { type: 'SET_DATA'; payload: IKUData[] }
@@ -18,7 +19,7 @@ type DashboardAction =
   | { type: 'SET_SELECTED_INDICATOR'; payload: IKUData | null }
   | { type: 'SET_SHOW_IMPORT_MODAL'; payload: boolean }
   | { type: 'UPDATE_ROW'; payload: { id: number; changes: Partial<IKUData> } }
-  | { type: 'ADD_ROW' }
+  | { type: 'ADD_ROW'; payload: IKUData }
   | { type: 'DELETE_ROW'; payload: number }
   | { type: 'RESET_FILTERS' };
 
@@ -64,19 +65,8 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
       return { ...state, selectedIndicator: action.payload };
     case 'SET_SHOW_IMPORT_MODAL':
       return { ...state, showImportModal: action.payload };
-    case 'ADD_ROW': {
-      const maxId = state.data.reduce((max, d) => Math.max(max, d.id), 0);
-      const newRow: IKUData = {
-        id: maxId + 1,
-        program: '', kegiatan: '', subKegiatan: '', indikator: '',
-        satuan: '', targetRenstra: 0, targetTahun: 0,
-        realisasiTW1: null, realisasiTW2: null, realisasiTW3: null, realisasiTW4: null,
-        realisasiTahun: 0, persentase: 0,
-        targetAnggaran: 0, realisasiAnggaran: 0, persentaseAnggaran: 0,
-        tahun: state.tahun,
-      };
-      return { ...state, data: [...state.data, newRow] };
-    }
+    case 'ADD_ROW':
+      return { ...state, data: [...state.data, action.payload] };
     case 'DELETE_ROW':
       return { ...state, data: state.data.filter(d => d.id !== action.payload) };
     case 'RESET_FILTERS':
@@ -103,18 +93,89 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
   }
 }
 
+function toDb(row: Partial<IKUData>) {
+  return {
+    program: row.program,
+    kegiatan: row.kegiatan,
+    sub_kegiatan: row.subKegiatan,
+    indikator: row.indikator,
+    satuan: row.satuan,
+    target_renstra: row.targetRenstra,
+    target_tahun: row.targetTahun,
+    realisasi_tw1: row.realisasiTW1 ?? null,
+    realisasi_tw2: row.realisasiTW2 ?? null,
+    realisasi_tw3: row.realisasiTW3 ?? null,
+    realisasi_tw4: row.realisasiTW4 ?? null,
+    target_anggaran: row.targetAnggaran,
+    realisasi_anggaran: row.realisasiAnggaran,
+    tahun: row.tahun,
+  };
+}
+
+function fromDb(row: Record<string, unknown>): IKUData {
+  const tw1 = (row.realisasi_tw1 as number) ?? null;
+  const tw2 = (row.realisasi_tw2 as number) ?? null;
+  const tw3 = (row.realisasi_tw3 as number) ?? null;
+  const tw4 = (row.realisasi_tw4 as number) ?? null;
+  const targetTahun = (row.target_tahun as number) ?? 0;
+  const realisasiTahun = (tw1 ?? 0) + (tw2 ?? 0) + (tw3 ?? 0) + (tw4 ?? 0);
+  const targetAnggaran = (row.target_anggaran as number) ?? 0;
+  const realisasiAnggaran = (row.realisasi_anggaran as number) ?? 0;
+  return {
+    id: row.id as number,
+    program: (row.program as string) ?? '',
+    kegiatan: (row.kegiatan as string) ?? '',
+    subKegiatan: (row.sub_kegiatan as string) ?? '',
+    indikator: (row.indikator as string) ?? '',
+    satuan: (row.satuan as string) ?? '',
+    targetRenstra: (row.target_renstra as number) ?? 0,
+    targetTahun,
+    realisasiTW1: tw1,
+    realisasiTW2: tw2,
+    realisasiTW3: tw3,
+    realisasiTW4: tw4,
+    realisasiTahun,
+    persentase: targetTahun > 0 ? (realisasiTahun / targetTahun) * 100 : 0,
+    targetAnggaran,
+    realisasiAnggaran,
+    persentaseAnggaran: targetAnggaran > 0 ? (realisasiAnggaran / targetAnggaran) * 100 : 0,
+    tahun: (row.tahun as number) ?? 2026,
+  };
+}
+
 interface DashboardContextType {
   state: DashboardState;
   dispatch: React.Dispatch<DashboardAction>;
+  supabaseLoaded: boolean;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(dashboardReducer, initialState);
+  const [supabaseLoaded, setSupabaseLoaded] = useState(false);
 
   useEffect(() => {
     async function loadData() {
+      try {
+        const { data, error } = await supabase
+          .from('iku_data')
+          .select('*')
+          .order('id');
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const mapped = data.map(fromDb);
+          dispatch({ type: 'SET_DATA', payload: mapped });
+          setSupabaseLoaded(true);
+          return;
+        }
+      } catch (err) {
+        console.error('Supabase load error:', err);
+      }
+
+      // Fallback: load from Excel
       try {
         const res = await fetch('/RENJA-2026-1.xlsx');
         const buf = await res.arrayBuffer();
@@ -122,16 +183,24 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         const parsed = parseRenjaExcel(wb);
         if (parsed.length > 0) {
           dispatch({ type: 'SET_DATA', payload: parsed });
+          // Auto-save to Supabase for next time
+          try {
+            const dbRows = parsed.map(d => toDb(d));
+            await supabase.from('iku_data').insert(dbRows);
+          } catch (e) {
+            // Supabase not configured yet - ignore
+          }
         }
       } catch (err) {
         console.error('Gagal load data:', err);
       }
+      setSupabaseLoaded(true);
     }
     loadData();
   }, []);
 
   return (
-    <DashboardContext.Provider value={{ state, dispatch }}>
+    <DashboardContext.Provider value={{ state, dispatch, supabaseLoaded }}>
       {children}
     </DashboardContext.Provider>
   );
@@ -144,3 +213,6 @@ export function useDashboard() {
   }
   return context;
 }
+
+export { toDb, fromDb };
+export type { DashboardAction };

@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Search, ChevronUp, ChevronDown, Eye, Pencil, Check, X, Plus, Trash2 } from 'lucide-react';
-import { useDashboard } from '../context/DashboardContext';
+import { useDashboard, toDb, fromDb } from '../context/DashboardContext';
+import { supabase } from '../lib/supabase';
 import { getKategori, getKategoriColor, getKategoriBgColor, getKategoriTextColor, formatNumber, formatRupiahFull } from '../utils/calculations';
 import type { IKUData } from '../types';
 
@@ -73,8 +74,17 @@ export function IKUTable() {
     setEditData({});
   }, []);
 
-  const saveEdit = useCallback(() => {
+  const saveEdit = useCallback(async () => {
     if (editingId === null) return;
+    try {
+      const dbFields = toDb(editData as Partial<IKUData>);
+      const clean = Object.fromEntries(
+        Object.entries(dbFields).filter(([_, v]) => v !== undefined)
+      );
+      await supabase.from('iku_data').update(clean).eq('id', editingId);
+    } catch (err) {
+      console.error('Supabase update error:', err);
+    }
     dispatch({ type: 'UPDATE_ROW', payload: { id: editingId, changes: editData } });
     setEditingId(null);
     setEditData({});
@@ -199,7 +209,12 @@ export function IKUTable() {
               </button>
             ))}
             <button
-              onClick={() => dispatch({ type: 'ADD_ROW' })}
+              onClick={async () => {
+                try {
+                  const { data } = await supabase.from('iku_data').insert({ tahun: state.tahun }).select();
+                  if (data?.[0]) dispatch({ type: 'ADD_ROW', payload: fromDb(data[0]) });
+                } catch (err) { console.error('Supabase insert error:', err); }
+              }}
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-all flex items-center gap-1"
             >
               <Plus className="w-3 h-3" /> Tambah Baris
@@ -339,10 +354,7 @@ export function IKUTable() {
                   </td>
                   <td className="px-0.5 py-1 text-right text-gray-600 whitespace-nowrap">
                     {isEditing ? (
-                      <div className="flex flex-col gap-0.5">
-                        <input type="number" value={editData.targetTahun ?? ''} onChange={e => updateEditField('targetTahun', e.target.value)} className={`${numInputClass} w-full`} placeholder="Target Tahun" />
-                        <input type="number" value={editData.targetRenstra ?? ''} onChange={e => updateEditField('targetRenstra', e.target.value)} className={`${numInputClass} w-full`} placeholder="Target Renstra" />
-                      </div>
+                      <input type="number" value={editData.targetTahun ?? ''} onChange={e => updateEditField('targetTahun', e.target.value)} className={`${numInputClass} w-20`} placeholder="Target" />
                     ) : formatNumber(item.targetTahun)}
                   </td>
                   <td className="px-0.5 py-1 text-center text-gray-500 whitespace-nowrap">
@@ -388,7 +400,11 @@ export function IKUTable() {
                       );
                     })()}
                   </td>
-                  <td className="px-0.5 py-1 text-right text-gray-600 whitespace-nowrap">{formatRupiahFull(item.targetAnggaran)}</td>
+                  <td className="px-0.5 py-1 text-right text-gray-600 whitespace-nowrap">
+                    {isEditing ? (
+                      <input type="number" value={editData.targetAnggaran ?? ''} onChange={e => updateEditField('targetAnggaran', e.target.value)} className={`${numInputClass} text-right`} />
+                    ) : formatRupiahFull(item.targetAnggaran)}
+                  </td>
                   <td className="px-0.5 py-1 text-right text-gray-600 whitespace-nowrap">
                     {isEditing ? (
                       <input type="number" value={editData.realisasiAnggaran ?? ''} onChange={e => updateEditField('realisasiAnggaran', e.target.value)} className={`${numInputClass} text-right`} />
@@ -396,7 +412,7 @@ export function IKUTable() {
                   </td>
                   <td className="px-0.5 py-1 text-center font-medium text-gray-600 whitespace-nowrap">
                     {isEditing
-                      ? `${item.targetAnggaran > 0 ? ((editData.realisasiAnggaran ?? 0) / item.targetAnggaran * 100).toFixed(1) : '0.0'}%`
+                      ? `${(editData.targetAnggaran ?? item.targetAnggaran) > 0 ? ((editData.realisasiAnggaran ?? 0) / (editData.targetAnggaran ?? item.targetAnggaran) * 100).toFixed(1) : '0.0'}%`
                       : `${item.persentaseAnggaran.toFixed(1)}%`}
                   </td>
                   <td className="px-0.5 py-1 text-center">
@@ -431,7 +447,7 @@ export function IKUTable() {
                           <button onClick={() => dispatch({ type: 'SET_SELECTED_INDICATOR', payload: item })} className="p-0.5 hover:bg-blue-50 rounded transition-colors" title="Detail">
                             <Eye className="w-2.5 h-2.5 text-blue-500" />
                           </button>
-                          <button onClick={() => dispatch({ type: 'DELETE_ROW', payload: item.id })} className="p-0.5 hover:bg-red-50 rounded transition-colors" title="Hapus">
+                          <button onClick={async () => { try { await supabase.from('iku_data').delete().eq('id', item.id); dispatch({ type: 'DELETE_ROW', payload: item.id }); } catch (err) { console.error('Supabase delete error:', err); } }} className="p-0.5 hover:bg-red-50 rounded transition-colors" title="Hapus">
                             <Trash2 className="w-2.5 h-2.5 text-red-500" />
                           </button>
                         </>

@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
 import { Upload, FileSpreadsheet, X, ArrowRight, Check } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { useDashboard } from '../context/DashboardContext';
+import { useDashboard, toDb } from '../context/DashboardContext';
+import { supabase } from '../lib/supabase';
 import { Notification } from './Notification';
 import type { IKUData } from '../types';
 
@@ -160,7 +161,7 @@ export function ImportData() {
       return;
     }
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         const data = new Uint8Array(event.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
@@ -170,6 +171,14 @@ export function ImportData() {
         if (mappedData.length === 0) {
           setNotification({ type: 'error', message: 'Tidak ada data yang valid untuk diimport.' });
           return;
+        }
+        // Sync to Supabase
+        try {
+          await supabase.from('iku_data').delete().neq('id', 0);
+          const dbRows = mappedData.map(d => toDb(d));
+          await supabase.from('iku_data').insert(dbRows);
+        } catch (err) {
+          console.error('Supabase import error:', err);
         }
         dispatch({ type: 'SET_DATA', payload: mappedData });
         setNotification({ type: 'success', message: `${mappedData.length} indikator berhasil diimport!` });
