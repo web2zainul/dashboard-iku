@@ -697,7 +697,7 @@ export function IKUTable() {
                       </div>
                     ) : ''}
                   </td>
-                  <td className="px-1 py-1 font-medium text-black text-[10px] break-words max-w-[200px]">
+                  <td className="px-1 py-1 text-black text-[10px] break-words max-w-[200px]">
                     {isEditing ? (
                       <input type="text" value={editData.indikator ?? ''} onChange={e => updateEditField('indikator', e.target.value)} className={textInputClass} />
                     ) : item.indikator}
