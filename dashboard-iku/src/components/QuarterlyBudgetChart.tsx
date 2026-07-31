@@ -1,5 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { formatRupiah } from '../utils/calculations';
+import { formatRupiahFull } from '../utils/calculations';
 
 type TooltipProps = { active?: boolean; payload?: Array<{ value: number; name: string }>; label?: string };
 
@@ -8,7 +8,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     return (
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-3">
         <p className="text-sm font-semibold text-gray-600">{label}</p>
-        <p className="text-lg font-bold text-purple-600">{formatRupiah(payload[0].value)}</p>
+        <p className="text-lg font-bold text-purple-600">{formatRupiahFull(payload[0].value)}</p>
       </div>
     );
   }
@@ -33,7 +33,7 @@ export function QuarterlyBudgetChart() {
           <BarChart data={budgetData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis dataKey="triwulan" tick={{ fontSize: 12, fill: '#64748b' }} tickLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => formatRupiah(v)} />
+            <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => formatRupiahFull(v)} />
             <Tooltip content={<CustomTooltip />} />
             <Bar dataKey="anggaran" fill="#8b5cf6" radius={[6, 6, 0, 0]} barSize={50} animationDuration={800} />
           </BarChart>
