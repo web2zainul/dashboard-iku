@@ -1,5 +1,5 @@
 import { useDashboard } from '../context/DashboardContext';
-import { calculateKPI, getStatusText, getKategoriColor } from '../utils/calculations';
+import { calculateKPI, getKategori, getStatusText, getKategoriColor } from '../utils/calculations';
 
 export function GaugeChart() {
   const { state } = useDashboard();
@@ -7,9 +7,7 @@ export function GaugeChart() {
   const percentage = kpi.rataRataCapaian;
   const status = getStatusText(percentage);
 
-  const statusColor = getKategoriColor(
-    percentage >= 90 ? 'Sangat Baik' : percentage >= 50 ? 'Baik' : 'Kurang'
-  );
+  const statusColor = getKategoriColor(getKategori(percentage));
 
   const svgWidth = 280;
   const svgHeight = 175;

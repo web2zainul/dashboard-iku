@@ -1,8 +1,8 @@
 export function CategoryLegend() {
   const categories = [
-    { label: '≥ 90% : Sangat Baik', color: '#10b981' },
-    { label: '50% – 89% : Baik', color: '#3b82f6' },
-    { label: '< 50% : Kurang', color: '#ef4444' },
+    { label: '> 100% : Sangat Baik', color: '#10b981' },
+    { label: '100% : Baik', color: '#3b82f6' },
+    { label: '< 100% : Kurang', color: '#ef4444' },
   ];
 
   return (

@@ -1,8 +1,8 @@
 import type { IKUData, KategoriCapaian, DistributionItem, KPIResult } from '../types';
 
 export function getKategori(persentase: number): KategoriCapaian {
-  if (persentase >= 90) return 'Sangat Baik';
-  if (persentase >= 50) return 'Baik';
+  if (persentase > 100) return 'Sangat Baik';
+  if (persentase >= 100) return 'Baik';
   return 'Kurang';
 }
 
@@ -63,8 +63,8 @@ export function computeAggregate(items: IKUData[]) {
 }
 
 export function getStatusText(persentase: number): string {
-  if (persentase >= 90) return 'Sangat Baik';
-  if (persentase >= 50) return 'Baik';
+  if (persentase > 100) return 'Sangat Baik';
+  if (persentase >= 100) return 'Baik';
   return 'Kurang';
 }
 
@@ -132,14 +132,14 @@ export function calculateKPI(data: IKUData[]): KPIResult {
 export function calculateDistribution(data: IKUData[]): DistributionItem[] {
   data = data.filter(isDetailRow);
   const total = data.length;
-  const sangatBaik = data.filter(d => d.persentase >= 90).length;
-  const baik = data.filter(d => d.persentase >= 50 && d.persentase < 90).length;
-  const kurang = data.filter(d => d.persentase < 50).length;
+  const sangatBaik = data.filter(d => d.persentase > 100).length;
+  const baik = data.filter(d => d.persentase >= 100 && d.persentase <= 100).length;
+  const kurang = data.filter(d => d.persentase < 100).length;
   const pct = (n: number) => total > 0 ? Math.round((n / total) * 10000) / 100 : 0;
   return [
-    { name: '≥ 90% (Sangat Baik)', value: sangatBaik, percentage: pct(sangatBaik), color: '#10b981' },
-    { name: '50% – 89% (Baik)', value: baik, percentage: pct(baik), color: '#3b82f6' },
-    { name: '< 50% (Kurang)', value: kurang, percentage: pct(kurang), color: '#ef4444' },
+    { name: '> 100% (Sangat Baik)', value: sangatBaik, percentage: pct(sangatBaik), color: '#10b981' },
+    { name: '100% (Baik)', value: baik, percentage: pct(baik), color: '#3b82f6' },
+    { name: '< 100% (Kurang)', value: kurang, percentage: pct(kurang), color: '#ef4444' },
   ];
 }
 
