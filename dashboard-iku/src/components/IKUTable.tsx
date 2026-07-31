@@ -351,21 +351,21 @@ export function IKUTable() {
           <colgroup>
             <col className="w-[2%]" />
             <col className="w-[16%]" />
-            <col className="w-[16%]" />
+            <col className="w-[15%]" />
             <col className="w-[4%]" />
             <col className="w-[5%]" />
             <col className="w-[4%]" />
             <col className="w-[4%]" />
             <col className="w-[4%]" />
             <col className="w-[4%]" />
-            <col className="w-[5%]" />
+            <col className="w-[4%]" />
             <col className="w-[4%]" />
             <col className="w-[3%]" />
             <col className="w-[8%]" />
             <col className="w-[8%]" />
             <col className="w-[4%]" />
             <col className="w-[4%]" />
-            <col className="w-[2%]" />
+            <col className="w-[7%]" />
           </colgroup>
           <thead className="bg-[#0f2358] text-white text-[8px] uppercase sticky top-0 z-10">
             <tr>
