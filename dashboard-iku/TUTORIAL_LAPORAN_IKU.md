@@ -1,8 +1,8 @@
-# Tutorial: Tab Laporan IKU (Formulir Pengukuran Kinerja TW I & TW II)
+# Tutorial: Tab Laporan IKU (Formulir Pengukuran Kinerja TW I s.d. TW IV)
 
 Tutorial ini menjelaskan:
 
-1. Cara menggunakan **Tab Laporan IKU** (satu tabel Formulir Pengukuran Kinerja TW I & TW II)
+1. Cara menggunakan **Tab Laporan IKU** (satu tabel Formulir Pengukuran Kinerja TW I–IV)
 2. Cara menjalankan **migrasi tabel `laporan_iku`** di Supabase
 
 ---
@@ -26,13 +26,14 @@ Tabel mengikuti format Formulir Pengukuran Kinerja BKPSDM, dengan kolom:
 | Indikator | Nama indikator kinerja |
 | Cara Pengukuran Indikator Sasaran | Rumus/cara menghitung indikator |
 | Target Tahun 2026 | Target kinerja tahunan (persen) |
-| Triwulan I & Triwulan II | Masing-masing berisi **Realisasi**, **%** (otomatis), dan **Ket** (keterangan) |
+| Triwulan I s.d. IV | Masing-masing berisi **Realisasi**, **%** (otomatis), dan **Ket** (keterangan) |
 | Program | Program terkait |
 | Pagu | Jumlah pagu anggaran |
-| Realisasi TW I / % TW I | Realisasi anggaran Triwulan I dan persentasenya (otomatis) |
-| Realisasi TW II / % TW II | Realisasi anggaran Triwulan II dan persentasenya (otomatis) |
+| Jumlah Realisasi Anggaran | Per triwulan: **Realisasi (RP)** dan **%** (otomatis) |
 
 > Kolom **%** dihitung otomatis: `% realisasi = realisasi ÷ target × 100` dan `% anggaran = realisasi anggaran ÷ pagu × 100`. Tidak perlu diisi manual.
+
+> Tabel lebar → geser ke kanan (scroll horizontal) untuk melihat kolom Triwulan III/IV dan kolom anggaran.
 
 ### 1.3 Mengedit isi tabel
 
@@ -58,34 +59,27 @@ Semua isi tabel bisa diedit:
 
 ## Bagian 2 — Migrasi Tabel `laporan_iku` di Supabase
 
-> Jalankan sekali agar data tersimpan di database (bukan hanya localStorage).
+> Jalankan migrasi berikut agar data tersimpan di database (bukan hanya localStorage). Jalankan **dua kali** (dua file berbeda).
 
-### 2.1 Buka isi file migrasi
+### 2.1 Migration pertama: `migration_laporan_iku.sql`
 
-Buka file `supabase/migration_laporan_iku.sql` di project ini — isinya perintah `CREATE TABLE laporan_iku ...`, kebijakan akses (RLS), dan **seed 3 baris data** Laporan TW I & TW II.
+Buka file `supabase/migration_laporan_iku.sql` — isinya `CREATE TABLE laporan_iku ...`, kebijakan akses (RLS), dan **seed 3 baris data** Laporan TW I & TW II.
 
-### 2.2 Login ke Supabase
+1. Buka browser, masuk ke **https://supabase.com/dashboard**
+2. Pilih project dashboard-iku
+3. Menu kiri → **SQL Editor** → **+ New query**
+4. Salin seluruh isi `migration_laporan_iku.sql` → tempel → klik **Run**
+5. Berhasil jika muncul hijau **"Success. No rows returned"**
 
-- Buka browser, masuk ke **https://supabase.com/dashboard**
-- Login dengan akun yang dipakai membuat project dashboard-iku
+### 2.2 Migration kedua: `migration_laporan_iku_tw34.sql`
 
-### 2.3 Pilih project
+Buka file `supabase/migration_laporan_iku_tw34.sql` — isinya perintah menambahkan kolom Triwulan III & IV.
 
-- Pilih project dashboard-iku dari daftar project
+1. **SQL Editor** → **+ New query** (baru)
+2. Salin seluruh isi `migration_laporan_iku_tw34.sql` → tempel → klik **Run**
+3. Berhasil jika muncul hijau **"Success. No rows returned"**
 
-### 2.4 Buka SQL Editor
-
-- Di menu kiri, klik **SQL Editor**
-- Klik tombol **+ New query** (kanan atas)
-
-### 2.5 Tempel & jalankan SQL
-
-- Hapus teks contoh bawaan editor
-- Salin seluruh isi `supabase/migration_laporan_iku.sql` dan tempel (Ctrl+V)
-- Klik tombol **Run** (kanan bawah)
-- Jika berhasil muncul hijau **"Success. No rows returned"** — tabel `laporan_iku` sudah dibuat dan terisi 3 baris
-
-### 2.6 Verifikasi (opsional)
+### 2.3 Verifikasi (opsional)
 
 Jalankan query berikut di SQL Editor:
 
@@ -95,4 +89,4 @@ SELECT COUNT(*) AS jumlah_baris FROM laporan_iku;
 
 Hasil `3` berarti seed berhasil (3 sasaran). Hasil `0` berarti tabel kosong — isi/edit dari aplikasi akan menambah baris.
 
-> Catatan: jika muncul "table already exists", itu aman — berarti migrasi sudah pernah dijalankan sebelumnya.
+> Catatan: jika muncul "table already exists" / "column already exists", itu aman — berarti migrasi sudah pernah dijalankan sebelumnya.

@@ -16,8 +16,12 @@ function computePercentages(row: LaporanIKU): LaporanIKU {
     realisasi != null && target > 0 ? (realisasi / target) * 100 : 0;
   row.persentaseTW1 = pct(row.realisasiTW1, row.targetTahun);
   row.persentaseTW2 = pct(row.realisasiTW2, row.targetTahun);
+  row.persentaseTW3 = pct(row.realisasiTW3, row.targetTahun);
+  row.persentaseTW4 = pct(row.realisasiTW4, row.targetTahun);
   row.persentaseAnggaranTW1 = row.pagu > 0 ? (row.realisasiAnggaranTW1 / row.pagu) * 100 : 0;
   row.persentaseAnggaranTW2 = row.pagu > 0 ? (row.realisasiAnggaranTW2 / row.pagu) * 100 : 0;
+  row.persentaseAnggaranTW3 = row.pagu > 0 ? (row.realisasiAnggaranTW3 / row.pagu) * 100 : 0;
+  row.persentaseAnggaranTW4 = row.pagu > 0 ? (row.realisasiAnggaranTW4 / row.pagu) * 100 : 0;
   return row;
 }
 
@@ -52,12 +56,22 @@ function laporanToDb(row: Partial<LaporanIKU>) {
     realisasi_tw2: row.realisasiTW2 ?? null,
     persentase_tw2: row.persentaseTW2,
     ket_tw2: row.ketTW2,
+    realisasi_tw3: row.realisasiTW3 ?? null,
+    persentase_tw3: row.persentaseTW3,
+    ket_tw3: row.ketTW3,
+    realisasi_tw4: row.realisasiTW4 ?? null,
+    persentase_tw4: row.persentaseTW4,
+    ket_tw4: row.ketTW4,
     program: row.program,
     pagu: row.pagu,
     realisasi_anggaran_tw1: row.realisasiAnggaranTW1,
     persentase_anggaran_tw1: row.persentaseAnggaranTW1,
     realisasi_anggaran_tw2: row.realisasiAnggaranTW2,
     persentase_anggaran_tw2: row.persentaseAnggaranTW2,
+    realisasi_anggaran_tw3: row.realisasiAnggaranTW3,
+    persentase_anggaran_tw3: row.persentaseAnggaranTW3,
+    realisasi_anggaran_tw4: row.realisasiAnggaranTW4,
+    persentase_anggaran_tw4: row.persentaseAnggaranTW4,
     tahun: row.tahun,
   };
 }
@@ -76,12 +90,22 @@ function laporanFromDb(row: Record<string, unknown>): LaporanIKU {
     realisasiTW2: (row.realisasi_tw2 as number) ?? null,
     persentaseTW2: (row.persentase_tw2 as number) ?? 0,
     ketTW2: (row.ket_tw2 as string) ?? '',
+    realisasiTW3: (row.realisasi_tw3 as number) ?? null,
+    persentaseTW3: (row.persentase_tw3 as number) ?? 0,
+    ketTW3: (row.ket_tw3 as string) ?? '',
+    realisasiTW4: (row.realisasi_tw4 as number) ?? null,
+    persentaseTW4: (row.persentase_tw4 as number) ?? 0,
+    ketTW4: (row.ket_tw4 as string) ?? '',
     program: (row.program as string) ?? '',
     pagu: (row.pagu as number) ?? 0,
     realisasiAnggaranTW1: (row.realisasi_anggaran_tw1 as number) ?? 0,
     persentaseAnggaranTW1: (row.persentase_anggaran_tw1 as number) ?? 0,
     realisasiAnggaranTW2: (row.realisasi_anggaran_tw2 as number) ?? 0,
     persentaseAnggaranTW2: (row.persentase_anggaran_tw2 as number) ?? 0,
+    realisasiAnggaranTW3: (row.realisasi_anggaran_tw3 as number) ?? 0,
+    persentaseAnggaranTW3: (row.persentase_anggaran_tw3 as number) ?? 0,
+    realisasiAnggaranTW4: (row.realisasi_anggaran_tw4 as number) ?? 0,
+    persentaseAnggaranTW4: (row.persentase_anggaran_tw4 as number) ?? 0,
     tahun: (row.tahun as number) ?? 2026,
   });
 }

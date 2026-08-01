@@ -1,5 +1,18 @@
 import type { LaporanIKU } from '../types';
 
+const baseTW = {
+  realisasiTW3: null,
+  persentaseTW3: 0,
+  ketTW3: '',
+  realisasiTW4: null,
+  persentaseTW4: 0,
+  ketTW4: '',
+  realisasiAnggaranTW3: 0,
+  persentaseAnggaranTW3: 0,
+  realisasiAnggaranTW4: 0,
+  persentaseAnggaranTW4: 0,
+};
+
 export const sampleLaporanIKU: LaporanIKU[] = [
   {
     id: 1,
@@ -21,6 +34,7 @@ export const sampleLaporanIKU: LaporanIKU[] = [
     realisasiAnggaranTW2: 210426590,
     persentaseAnggaranTW2: 57.79,
     tahun: 2026,
+    ...baseTW,
   },
   {
     id: 2,
@@ -42,6 +56,7 @@ export const sampleLaporanIKU: LaporanIKU[] = [
     realisasiAnggaranTW2: 3486879210,
     persentaseAnggaranTW2: 48.01,
     tahun: 2026,
+    ...baseTW,
   },
   {
     id: 3,
@@ -63,5 +78,6 @@ export const sampleLaporanIKU: LaporanIKU[] = [
     realisasiAnggaranTW2: 0,
     persentaseAnggaranTW2: 0,
     tahun: 2026,
+    ...baseTW,
   },
 ];

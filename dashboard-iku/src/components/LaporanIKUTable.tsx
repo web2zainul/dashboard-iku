@@ -8,13 +8,17 @@ import type { LaporanIKU } from '../types';
 type EditState = Partial<LaporanIKU>;
 
 const TW_COLS: Array<{
-  realKey: 'realisasiTW1' | 'realisasiTW2';
-  pctKey: 'persentaseTW1' | 'persentaseTW2';
-  ketKey: 'ketTW1' | 'ketTW2';
+  realKey: 'realisasiTW1' | 'realisasiTW2' | 'realisasiTW3' | 'realisasiTW4';
+  pctKey: 'persentaseTW1' | 'persentaseTW2' | 'persentaseTW3' | 'persentaseTW4';
+  ketKey: 'ketTW1' | 'ketTW2' | 'ketTW3' | 'ketTW4';
+  angKey: 'realisasiAnggaranTW1' | 'realisasiAnggaranTW2' | 'realisasiAnggaranTW3' | 'realisasiAnggaranTW4';
+  pctAngKey: 'persentaseAnggaranTW1' | 'persentaseAnggaranTW2' | 'persentaseAnggaranTW3' | 'persentaseAnggaranTW4';
   label: string;
 }> = [
-  { realKey: 'realisasiTW1', pctKey: 'persentaseTW1', ketKey: 'ketTW1', label: 'Triwulan I' },
-  { realKey: 'realisasiTW2', pctKey: 'persentaseTW2', ketKey: 'ketTW2', label: 'Triwulan II' },
+  { realKey: 'realisasiTW1', pctKey: 'persentaseTW1', ketKey: 'ketTW1', angKey: 'realisasiAnggaranTW1', pctAngKey: 'persentaseAnggaranTW1', label: 'Triwulan I' },
+  { realKey: 'realisasiTW2', pctKey: 'persentaseTW2', ketKey: 'ketTW2', angKey: 'realisasiAnggaranTW2', pctAngKey: 'persentaseAnggaranTW2', label: 'Triwulan II' },
+  { realKey: 'realisasiTW3', pctKey: 'persentaseTW3', ketKey: 'ketTW3', angKey: 'realisasiAnggaranTW3', pctAngKey: 'persentaseAnggaranTW3', label: 'Triwulan III' },
+  { realKey: 'realisasiTW4', pctKey: 'persentaseTW4', ketKey: 'ketTW4', angKey: 'realisasiAnggaranTW4', pctAngKey: 'persentaseAnggaranTW4', label: 'Triwulan IV' },
 ];
 
 function emptyRow(tahun: number, id: number): LaporanIKU {
@@ -31,12 +35,22 @@ function emptyRow(tahun: number, id: number): LaporanIKU {
     realisasiTW2: null,
     persentaseTW2: 0,
     ketTW2: '',
+    realisasiTW3: null,
+    persentaseTW3: 0,
+    ketTW3: '',
+    realisasiTW4: null,
+    persentaseTW4: 0,
+    ketTW4: '',
     program: '',
     pagu: 0,
     realisasiAnggaranTW1: 0,
     persentaseAnggaranTW1: 0,
     realisasiAnggaranTW2: 0,
     persentaseAnggaranTW2: 0,
+    realisasiAnggaranTW3: 0,
+    persentaseAnggaranTW3: 0,
+    realisasiAnggaranTW4: 0,
+    persentaseAnggaranTW4: 0,
     tahun,
   };
 }
@@ -122,7 +136,7 @@ export function LaporanIKUTable() {
       <div className="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            FORMULIR PENGUKURAN KINERJA — LAPORAN IKU TW I & TW II TAHUN 2026
+            FORMULIR PENGUKURAN KINERJA — LAPORAN IKU TW I s.d. TW IV TAHUN 2026
           </h3>
           <p className="text-[10px] text-gray-400 mt-1">
             Sumber: Formulir Pengukuran Kinerja BKPSDM Kota Cirebon — Laporan TW I dan TW II 2026
@@ -137,50 +151,34 @@ export function LaporanIKUTable() {
       </div>
 
       <div className="overflow-x-auto scrollbar-thin">
-        <table className="w-full text-[9px]" style={{ tableLayout: 'fixed' }}>
-          <colgroup>
-            <col className="w-[2%]" />
-            <col className="w-[10%]" />
-            <col className="w-[9%]" />
-            <col className="w-[10%]" />
-            <col className="w-[3.5%]" />
-            <col className="w-[2.5%]" />
-            <col className="w-[2.5%]" />
-            <col className="w-[9%]" />
-            <col className="w-[2.5%]" />
-            <col className="w-[2.5%]" />
-            <col className="w-[9%]" />
-            <col className="w-[9%]" />
-            <col className="w-[5%]" />
-            <col className="w-[3%]" />
-            <col className="w-[5%]" />
-            <col className="w-[3%]" />
-            <col className="w-[3%]" />
-          </colgroup>
-          <thead className="bg-[#0f2358] text-white text-[8px] uppercase sticky top-0 z-10">
+        <table className="w-full text-[10px] min-w-[2400px]" style={{ tableLayout: 'auto' }}>
+          <thead className="bg-[#0f2358] text-white text-[9px] uppercase sticky top-0 z-10">
             <tr>
-              <th rowSpan={2} className="px-0.5 py-1 font-semibold">No</th>
-              <th rowSpan={2} className="px-1 py-1 font-semibold text-left">SASARAN STRATEGIS</th>
-              <th rowSpan={2} className="px-1 py-1 font-semibold text-left">INDIKATOR</th>
-              <th rowSpan={2} className="px-1 py-1 font-semibold text-left">CARA PENGUKURAN INDIKATOR SASARAN</th>
-              <th rowSpan={2} className="px-0.5 py-1 font-semibold">TARGET TAHUN 2026</th>
+              <th rowSpan={2} className="px-1.5 py-1.5 font-semibold whitespace-nowrap">No</th>
+              <th rowSpan={2} className="px-1.5 py-1.5 font-semibold text-left whitespace-nowrap">SASARAN STRATEGIS</th>
+              <th rowSpan={2} className="px-1.5 py-1.5 font-semibold text-left whitespace-nowrap">INDIKATOR</th>
+              <th rowSpan={2} className="px-1.5 py-1.5 font-semibold text-left whitespace-nowrap">CARA PENGUKURAN INDIKATOR SASARAN</th>
+              <th rowSpan={2} className="px-1.5 py-1.5 font-semibold whitespace-nowrap">TARGET TAHUN 2026</th>
               {TW_COLS.map(tw => (
-                <th key={tw.realKey} colSpan={3} className="px-0.5 py-1 font-semibold">{tw.label}</th>
+                <th key={tw.realKey} colSpan={3} className="px-1.5 py-1.5 font-semibold whitespace-nowrap text-center">{tw.label}</th>
               ))}
-              <th rowSpan={2} className="px-1 py-1 font-semibold text-left">PROGRAM</th>
-              <th rowSpan={2} className="px-0.5 py-1 font-semibold">PAGU</th>
-              <th rowSpan={2} className="px-0.5 py-1 font-semibold">REALISASI TW I</th>
-              <th rowSpan={2} className="px-0.5 py-1 font-semibold">% TW I</th>
-              <th rowSpan={2} className="px-0.5 py-1 font-semibold">REALISASI TW II</th>
-              <th rowSpan={2} className="px-0.5 py-1 font-semibold">% TW II</th>
-              <th rowSpan={2} className="px-0.5 py-1 font-semibold"></th>
+              <th rowSpan={2} className="px-1.5 py-1.5 font-semibold text-left whitespace-nowrap">PROGRAM</th>
+              <th rowSpan={2} className="px-1.5 py-1.5 font-semibold whitespace-nowrap">PAGU</th>
+              <th colSpan={8} className="px-1.5 py-1.5 font-semibold whitespace-nowrap text-center">JUMLAH REALISASI ANGGARAN</th>
+              <th rowSpan={2} className="px-1.5 py-1.5 font-semibold"></th>
             </tr>
             <tr>
               {TW_COLS.map(tw => (
                 <>
-                  <th key={`${tw.realKey}-r`} className="px-0.5 py-1 font-semibold bg-[#152e6e]">REALISASI</th>
-                  <th key={`${tw.realKey}-p`} className="px-0.5 py-1 font-semibold bg-[#152e6e]">%</th>
-                  <th key={`${tw.realKey}-k`} className="px-0.5 py-1 font-semibold bg-[#152e6e]">KET</th>
+                  <th key={`${tw.realKey}-r`} className="px-1.5 py-1.5 font-semibold bg-[#152e6e] whitespace-nowrap">REALISASI</th>
+                  <th key={`${tw.realKey}-p`} className="px-1.5 py-1.5 font-semibold bg-[#152e6e] whitespace-nowrap">%</th>
+                  <th key={`${tw.realKey}-k`} className="px-1.5 py-1.5 font-semibold bg-[#152e6e] whitespace-nowrap">KET</th>
+                </>
+              ))}
+              {TW_COLS.map(tw => (
+                <>
+                  <th key={`${tw.angKey}-r`} className="px-1.5 py-1.5 font-semibold bg-[#152e6e] whitespace-nowrap">{tw.label} (RP)</th>
+                  <th key={`${tw.angKey}-p`} className="px-1.5 py-1.5 font-semibold bg-[#152e6e] whitespace-nowrap">%</th>
                 </>
               ))}
             </tr>
@@ -191,31 +189,31 @@ export function LaporanIKUTable() {
               const edit = isEditing ? editData : item;
               const target = isEditing ? (editData.targetTahun ?? item.targetTahun) : item.targetTahun;
               const pagu = isEditing ? (editData.pagu ?? item.pagu) : item.pagu;
-              const realAng1 = isEditing ? (editData.realisasiAnggaranTW1 ?? item.realisasiAnggaranTW1) : item.realisasiAnggaranTW1;
-              const realAng2 = isEditing ? (editData.realisasiAnggaranTW2 ?? item.realisasiAnggaranTW2) : item.realisasiAnggaranTW2;
+              const realAng = (tw: typeof TW_COLS[number]) =>
+                isEditing ? (editData[tw.angKey] ?? item[tw.angKey]) : item[tw.angKey];
               return (
                 <tr key={item.id} className={`transition-colors ${isEditing ? 'bg-blue-50/70' : 'hover:bg-gray-50/60'}`}>
-                  <td className="px-0.5 py-1 text-center text-gray-400">
+                  <td className="px-1.5 py-1 text-center text-gray-400">
                     {isEditing ? (
                       <input type="number" value={edit.no ?? 0} onChange={e => updateField('no', e.target.value, true)} className={`${numInputClass} text-center`} />
                     ) : item.no}
                   </td>
-                  <td className="px-1 py-1 align-top break-words">
+                  <td className="px-1.5 py-1 align-top break-words">
                     {isEditing
                       ? <textarea rows={3} value={edit.sasaranStrategis ?? ''} onChange={e => updateField('sasaranStrategis', e.target.value, false)} className={textInputClass} />
                       : item.sasaranStrategis}
                   </td>
-                  <td className="px-1 py-1 align-top break-words">
+                  <td className="px-1.5 py-1 align-top break-words">
                     {isEditing
                       ? <textarea rows={3} value={edit.indikator ?? ''} onChange={e => updateField('indikator', e.target.value, false)} className={textInputClass} />
                       : item.indikator}
                   </td>
-                  <td className="px-1 py-1 align-top break-words">
+                  <td className="px-1.5 py-1 align-top break-words">
                     {isEditing
                       ? <textarea rows={3} value={edit.caraPengukuran ?? ''} onChange={e => updateField('caraPengukuran', e.target.value, false)} className={textInputClass} />
                       : item.caraPengukuran}
                   </td>
-                  <td className="px-0.5 py-1 text-right font-semibold text-gray-700 whitespace-nowrap">
+                  <td className="px-1.5 py-1 text-right font-semibold text-gray-700 whitespace-nowrap">
                     {isEditing
                       ? <input type="number" value={edit.targetTahun ?? 0} onChange={e => updateField('targetTahun', e.target.value, true)} className={`${numInputClass} w-16`} />
                       : `${formatNumber(item.targetTahun)}%`}
@@ -225,15 +223,15 @@ export function LaporanIKUTable() {
                     const pct = livePct(realisasi as number | null, target);
                     return (
                       <>
-                        <td className="px-0.5 py-1 text-center text-gray-600 whitespace-nowrap">
+                        <td className="px-1.5 py-1 text-center text-gray-600 whitespace-nowrap">
                           {isEditing
                             ? <input type="number" value={realisasi ?? ''} onChange={e => updateField(tw.realKey, e.target.value, true, true)} className={numInputClass} />
                             : realisasi !== null ? `${formatNumber(realisasi as number)}%` : '-'}
                         </td>
-                        <td className="px-0.5 py-1 text-center font-medium whitespace-nowrap" style={{ color: pct > 0 ? '#0f2358' : '#9ca3af' }}>
+                        <td className="px-1.5 py-1 text-center font-medium whitespace-nowrap" style={{ color: pct > 0 ? '#0f2358' : '#9ca3af' }}>
                           {pct > 0 ? `${pct.toFixed(2)}%` : '-'}
                         </td>
-                        <td className="px-0.5 py-1 align-top break-words">
+                        <td className="px-1.5 py-1 align-top break-words">
                           {isEditing
                             ? <textarea rows={3} value={edit[tw.ketKey] ?? ''} onChange={e => updateField(tw.ketKey, e.target.value, false)} className={textInputClass} />
                             : item[tw.ketKey]}
@@ -241,33 +239,33 @@ export function LaporanIKUTable() {
                       </>
                     );
                   })}
-                  <td className="px-1 py-1 align-top break-words">
+                  <td className="px-1.5 py-1 align-top break-words">
                     {isEditing
                       ? <textarea rows={2} value={edit.program ?? ''} onChange={e => updateField('program', e.target.value, false)} className={textInputClass} />
                       : item.program}
                   </td>
-                  <td className="px-0.5 py-1 text-right text-gray-600 whitespace-nowrap">
+                  <td className="px-1.5 py-1 text-right text-gray-600 whitespace-nowrap">
                     {isEditing
                       ? <input type="number" value={edit.pagu ?? 0} onChange={e => updateField('pagu', e.target.value, true)} className={numInputClass} />
                       : formatRupiahFull(item.pagu)}
                   </td>
-                  <td className="px-0.5 py-1 text-right text-gray-600 whitespace-nowrap">
-                    {isEditing
-                      ? <input type="number" value={edit.realisasiAnggaranTW1 ?? 0} onChange={e => updateField('realisasiAnggaranTW1', e.target.value, true)} className={numInputClass} />
-                      : formatRupiahFull(item.realisasiAnggaranTW1)}
-                  </td>
-                  <td className="px-0.5 py-1 text-center font-medium text-gray-600 whitespace-nowrap">
-                    {isEditing ? `${liveAngPct(realAng1, pagu).toFixed(2)}%` : item.persentaseAnggaranTW1.toFixed(2)}
-                  </td>
-                  <td className="px-0.5 py-1 text-right text-gray-600 whitespace-nowrap">
-                    {isEditing
-                      ? <input type="number" value={edit.realisasiAnggaranTW2 ?? 0} onChange={e => updateField('realisasiAnggaranTW2', e.target.value, true)} className={numInputClass} />
-                      : formatRupiahFull(item.realisasiAnggaranTW2)}
-                  </td>
-                  <td className="px-0.5 py-1 text-center font-medium text-gray-600 whitespace-nowrap">
-                    {isEditing ? `${liveAngPct(realAng2, pagu).toFixed(2)}%` : item.persentaseAnggaranTW2.toFixed(2)}
-                  </td>
-                  <td className="px-0.5 py-1 text-center">
+                  {TW_COLS.map(tw => {
+                    const ang = realAng(tw);
+                    const angPct = liveAngPct(ang, pagu);
+                    return (
+                      <>
+                        <td className="px-1.5 py-1 text-right text-gray-600 whitespace-nowrap">
+                          {isEditing
+                            ? <input type="number" value={edit[tw.angKey] ?? 0} onChange={e => updateField(tw.angKey, e.target.value, true)} className={numInputClass} />
+                            : formatRupiahFull(item[tw.angKey])}
+                        </td>
+                        <td className="px-1.5 py-1 text-center font-medium text-gray-600 whitespace-nowrap">
+                          {isEditing ? `${angPct.toFixed(2)}%` : `${item[tw.pctAngKey].toFixed(2)}%`}
+                        </td>
+                      </>
+                    );
+                  })}
+                  <td className="px-1.5 py-1 text-center">
                     <div className="flex items-center justify-center gap-0.5">
                       {isEditing ? (
                         <>
@@ -295,7 +293,7 @@ export function LaporanIKUTable() {
             })}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={17} className="px-4 py-8 text-center text-gray-400 text-xs">
+                <td colSpan={30} className="px-4 py-8 text-center text-gray-400 text-xs">
                   Belum ada data. Klik "Tambah Baris" untuk mengisi.
                 </td>
               </tr>

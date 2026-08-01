@@ -69,11 +69,21 @@ export interface LaporanIKU {
   realisasiTW2: number | null;
   persentaseTW2: number;
   ketTW2: string;
+  realisasiTW3: number | null;
+  persentaseTW3: number;
+  ketTW3: string;
+  realisasiTW4: number | null;
+  persentaseTW4: number;
+  ketTW4: string;
   program: string;
   pagu: number;
   realisasiAnggaranTW1: number;
   persentaseAnggaranTW1: number;
   realisasiAnggaranTW2: number;
   persentaseAnggaranTW2: number;
+  realisasiAnggaranTW3: number;
+  persentaseAnggaranTW3: number;
+  realisasiAnggaranTW4: number;
+  persentaseAnggaranTW4: number;
   tahun: number;
 }
