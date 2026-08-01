@@ -463,7 +463,7 @@ export function IKUTable({ activeTab, onTabChange }: { activeTab: ActiveTab; onT
       </div>
 
       <div className="overflow-x-auto scrollbar-thin">
-        <table className="w-full text-[9px]" style={{ tableLayout: 'fixed' }}>
+        <table className="w-full text-[9px] table-bordered" style={{ tableLayout: 'fixed' }}>
           <colgroup>
             <col className="w-[2%]" />
             <col className="w-[16%]" />

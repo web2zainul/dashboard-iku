@@ -116,15 +116,15 @@ export function CapaianIndikatorChart() {
         </div>
       </div>
 
-      {/* Kartu indikator: 4 kolom desktop, 3 tablet, 1 mobile */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-4 gap-5">
+      {/* Kartu indikator: satu baris (scroll horizontal di layar sempit) */}
+      <div className="flex gap-3 overflow-x-auto pb-1">
         {rows.map((d) => {
           const kategori = getKartuKategori(d.realisasi, d.target);
           const warna = KARTU_KATEGORI_WARNA[kategori];
           return (
             <div
               key={d.id}
-              className="bg-white border border-[#E5E7EB] rounded-[18px] shadow-sm p-5 flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl"
+              className="flex-1 min-w-[190px] bg-white border border-[#E5E7EB] rounded-[18px] shadow-sm p-5 flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl"
             >
               <div className="relative">
                 <div
