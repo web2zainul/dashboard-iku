@@ -20,6 +20,9 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   return null;
 };
 
+const TOTAL_ANGGARAN = 7646183378;
+const REALISASI_ANGGARAN = 3697305800;
+
 export function BudgetComparisonChart() {
   const { state } = useDashboard();
   const kpi = calculateKPI(state.data);
@@ -27,8 +30,8 @@ export function BudgetComparisonChart() {
   const data = [
     {
       name: 'Anggaran',
-      Target: kpi.totalAnggaran,
-      Realisasi: kpi.realisasiAnggaran,
+      Target: TOTAL_ANGGARAN,
+      Realisasi: REALISASI_ANGGARAN,
     },
   ];
 
