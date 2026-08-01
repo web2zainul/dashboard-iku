@@ -1,14 +1,14 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatRupiahFull } from '../utils/calculations';
 
-type TooltipProps = { active?: boolean; payload?: Array<{ value: number; name: string }>; label?: string };
+type TooltipProps = { active?: boolean; payload?: Array<{ value: number }>; label?: string };
 
 const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-3">
         <p className="text-sm font-semibold text-gray-600">{label}</p>
-        <p className="text-lg font-bold text-purple-600">{formatRupiahFull(payload[0].value)}</p>
+        <p className="text-lg font-bold text-[#0f2358]">{formatRupiahFull(payload[0].value)}</p>
       </div>
     );
   }
@@ -30,13 +30,21 @@ export function QuarterlyBudgetChart() {
       </h3>
       <div className="h-52">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={budgetData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+          <LineChart data={budgetData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis dataKey="triwulan" tick={{ fontSize: 12, fill: '#64748b' }} tickLine={false} />
+            <XAxis dataKey="triwulan" tick={{ fontSize: 12, fill: '#64748b' }} tickLine={false} axisLine={{ stroke: '#e2e8f0' }} />
             <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => formatRupiahFull(v)} />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="anggaran" fill="#8b5cf6" radius={[6, 6, 0, 0]} barSize={50} animationDuration={800} />
-          </BarChart>
+            <Line
+              type="monotone"
+              dataKey="anggaran"
+              stroke="#0f2358"
+              strokeWidth={3}
+              dot={{ fill: '#0f2358', strokeWidth: 2, r: 5, stroke: 'white' }}
+              activeDot={{ r: 7, stroke: '#0f2358', strokeWidth: 2, fill: 'white' }}
+              animationDuration={800}
+            />
+          </LineChart>
         </ResponsiveContainer>
       </div>
       {budgetData.every(d => d.anggaran === 0) && (

@@ -5,7 +5,6 @@ import { Header } from './components/Header';
 import { KPICards } from './components/KPICards';
 import { GaugeChart } from './components/GaugeChart';
 import { DistributionChart } from './components/DistributionChart';
-import { QuarterlyTrendChart } from './components/QuarterlyTrendChart';
 import { BudgetComparisonChart } from './components/BudgetComparisonChart';
 import { QuarterlyBudgetChart } from './components/QuarterlyBudgetChart';
 import { CategoryLegend } from './components/CategoryLegend';
@@ -46,10 +45,9 @@ function DashboardContent() {
           </div>
 
           <div id="dashboard-content" className="space-y-5">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               <GaugeChart />
               <DistributionChart />
-              <QuarterlyTrendChart />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
