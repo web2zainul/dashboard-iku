@@ -6,6 +6,7 @@ import { formatNumber, formatRupiahFull } from '../utils/calculations';
 import type { LaporanIKU } from '../types';
 
 type EditState = Partial<LaporanIKU>;
+type TwIndex = 1 | 2 | 3 | 4;
 
 const TW_COLS: Array<{
   realKey: 'realisasiTW1' | 'realisasiTW2' | 'realisasiTW3' | 'realisasiTW4';
@@ -19,6 +20,13 @@ const TW_COLS: Array<{
   { realKey: 'realisasiTW2', pctKey: 'persentaseTW2', ketKey: 'ketTW2', angKey: 'realisasiAnggaranTW2', pctAngKey: 'persentaseAnggaranTW2', label: 'Triwulan II' },
   { realKey: 'realisasiTW3', pctKey: 'persentaseTW3', ketKey: 'ketTW3', angKey: 'realisasiAnggaranTW3', pctAngKey: 'persentaseAnggaranTW3', label: 'Triwulan III' },
   { realKey: 'realisasiTW4', pctKey: 'persentaseTW4', ketKey: 'ketTW4', angKey: 'realisasiAnggaranTW4', pctAngKey: 'persentaseAnggaranTW4', label: 'Triwulan IV' },
+];
+
+const TW_OPTIONS: Array<{ label: string; key: TwIndex }> = [
+  { label: 'TW I', key: 1 },
+  { label: 'TW II', key: 2 },
+  { label: 'TW III', key: 3 },
+  { label: 'TW IV', key: 4 },
 ];
 
 function emptyRow(tahun: number, id: number): LaporanIKU {
@@ -59,6 +67,9 @@ export function LaporanIKUTable() {
   const { rows, dispatch } = useLaporan();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<EditState>({});
+  const [selectedTW, setSelectedTW] = useState<TwIndex>(1);
+
+  const tw = TW_COLS[selectedTW - 1];
 
   const textInputClass = "w-full px-1 py-1 text-[10px] border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none bg-blue-50/60";
   const numInputClass = "w-full px-1 py-1 text-[10px] text-right border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none bg-blue-50/60";
@@ -136,22 +147,39 @@ export function LaporanIKUTable() {
       <div className="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            FORMULIR PENGUKURAN KINERJA — LAPORAN IKU TW I s.d. TW IV TAHUN 2026
+            FORMULIR PENGUKURAN KINERJA — LAPORAN IKU TAHUN 2026
           </h3>
           <p className="text-[10px] text-gray-400 mt-1">
-            Sumber: Formulir Pengukuran Kinerja BKPSDM Kota Cirebon — Laporan TW I dan TW II 2026
+            Sumber: Formulir Pengukuran Kinerja BKPSDM Kota Cirebon — Menampilkan {tw.label}
           </p>
         </div>
-        <button
-          onClick={addRow}
-          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-all flex items-center gap-1"
-        >
-          <Plus className="w-3 h-3" /> Tambah Baris
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="flex flex-wrap gap-1.5">
+            {TW_OPTIONS.map((opt) => (
+              <button
+                key={opt.key}
+                onClick={() => setSelectedTW(opt.key)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  selectedTW === opt.key
+                    ? 'bg-[#0f2358] text-white shadow-md'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={addRow}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-all flex items-center gap-1"
+          >
+            <Plus className="w-3 h-3" /> Tambah Baris
+          </button>
+        </div>
       </div>
 
       <div className="overflow-x-auto scrollbar-thin">
-        <table className="w-full text-[10px] min-w-[2400px]" style={{ tableLayout: 'auto' }}>
+        <table className="w-full text-[10px] min-w-[900px]" style={{ tableLayout: 'auto' }}>
           <thead className="bg-[#0f2358] text-white text-[9px] uppercase sticky top-0 z-10">
             <tr>
               <th rowSpan={2} className="px-1.5 py-1.5 font-semibold whitespace-nowrap">No</th>
@@ -159,28 +187,17 @@ export function LaporanIKUTable() {
               <th rowSpan={2} className="px-1.5 py-1.5 font-semibold text-left whitespace-nowrap">INDIKATOR</th>
               <th rowSpan={2} className="px-1.5 py-1.5 font-semibold text-left whitespace-nowrap">CARA PENGUKURAN INDIKATOR SASARAN</th>
               <th rowSpan={2} className="px-1.5 py-1.5 font-semibold whitespace-nowrap">TARGET TAHUN 2026</th>
-              {TW_COLS.map(tw => (
-                <th key={tw.realKey} colSpan={3} className="px-1.5 py-1.5 font-semibold whitespace-nowrap text-center">{tw.label}</th>
-              ))}
+              <th colSpan={3} className="px-1.5 py-1.5 font-semibold whitespace-nowrap text-center">{tw.label}</th>
               <th rowSpan={2} className="px-1.5 py-1.5 font-semibold text-left whitespace-nowrap">PROGRAM</th>
               <th rowSpan={2} className="px-1.5 py-1.5 font-semibold whitespace-nowrap">PAGU</th>
-              <th colSpan={8} className="px-1.5 py-1.5 font-semibold whitespace-nowrap text-center">JUMLAH REALISASI ANGGARAN</th>
+              <th rowSpan={2} className="px-1.5 py-1.5 font-semibold whitespace-nowrap">REALISASI ANGGARAN {tw.label}</th>
+              <th rowSpan={2} className="px-1.5 py-1.5 font-semibold whitespace-nowrap">%</th>
               <th rowSpan={2} className="px-1.5 py-1.5 font-semibold"></th>
             </tr>
             <tr>
-              {TW_COLS.map(tw => (
-                <>
-                  <th key={`${tw.realKey}-r`} className="px-1.5 py-1.5 font-semibold bg-[#152e6e] whitespace-nowrap">REALISASI</th>
-                  <th key={`${tw.realKey}-p`} className="px-1.5 py-1.5 font-semibold bg-[#152e6e] whitespace-nowrap">%</th>
-                  <th key={`${tw.realKey}-k`} className="px-1.5 py-1.5 font-semibold bg-[#152e6e] whitespace-nowrap">KET</th>
-                </>
-              ))}
-              {TW_COLS.map(tw => (
-                <>
-                  <th key={`${tw.angKey}-r`} className="px-1.5 py-1.5 font-semibold bg-[#152e6e] whitespace-nowrap">{tw.label} (RP)</th>
-                  <th key={`${tw.angKey}-p`} className="px-1.5 py-1.5 font-semibold bg-[#152e6e] whitespace-nowrap">%</th>
-                </>
-              ))}
+              <th className="px-1.5 py-1.5 font-semibold bg-[#152e6e] whitespace-nowrap">REALISASI</th>
+              <th className="px-1.5 py-1.5 font-semibold bg-[#152e6e] whitespace-nowrap">%</th>
+              <th className="px-1.5 py-1.5 font-semibold bg-[#152e6e] whitespace-nowrap">KET</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -189,8 +206,10 @@ export function LaporanIKUTable() {
               const edit = isEditing ? editData : item;
               const target = isEditing ? (editData.targetTahun ?? item.targetTahun) : item.targetTahun;
               const pagu = isEditing ? (editData.pagu ?? item.pagu) : item.pagu;
-              const realAng = (tw: typeof TW_COLS[number]) =>
-                isEditing ? (editData[tw.angKey] ?? item[tw.angKey]) : item[tw.angKey];
+              const realisasi = isEditing ? (edit[tw.realKey] ?? null) : item[tw.realKey];
+              const realAng = isEditing ? (editData[tw.angKey] ?? item[tw.angKey]) : item[tw.angKey];
+              const pct = livePct(realisasi as number | null, target);
+              const angPct = liveAngPct(realAng, pagu);
               return (
                 <tr key={item.id} className={`transition-colors ${isEditing ? 'bg-blue-50/70' : 'hover:bg-gray-50/60'}`}>
                   <td className="px-1.5 py-1 text-center text-gray-400">
@@ -218,27 +237,19 @@ export function LaporanIKUTable() {
                       ? <input type="number" value={edit.targetTahun ?? 0} onChange={e => updateField('targetTahun', e.target.value, true)} className={`${numInputClass} w-16`} />
                       : `${formatNumber(item.targetTahun)}%`}
                   </td>
-                  {TW_COLS.map(tw => {
-                    const realisasi = isEditing ? (edit[tw.realKey] ?? null) : item[tw.realKey];
-                    const pct = livePct(realisasi as number | null, target);
-                    return (
-                      <>
-                        <td className="px-1.5 py-1 text-center text-gray-600 whitespace-nowrap">
-                          {isEditing
-                            ? <input type="number" value={realisasi ?? ''} onChange={e => updateField(tw.realKey, e.target.value, true, true)} className={numInputClass} />
-                            : realisasi !== null ? `${formatNumber(realisasi as number)}%` : '-'}
-                        </td>
-                        <td className="px-1.5 py-1 text-center font-medium whitespace-nowrap" style={{ color: pct > 0 ? '#0f2358' : '#9ca3af' }}>
-                          {pct > 0 ? `${pct.toFixed(2)}%` : '-'}
-                        </td>
-                        <td className="px-1.5 py-1 align-top break-words">
-                          {isEditing
-                            ? <textarea rows={3} value={edit[tw.ketKey] ?? ''} onChange={e => updateField(tw.ketKey, e.target.value, false)} className={textInputClass} />
-                            : item[tw.ketKey]}
-                        </td>
-                      </>
-                    );
-                  })}
+                  <td className="px-1.5 py-1 text-center text-gray-600 whitespace-nowrap">
+                    {isEditing
+                      ? <input type="number" value={realisasi ?? ''} onChange={e => updateField(tw.realKey, e.target.value, true, true)} className={numInputClass} />
+                      : realisasi !== null ? `${formatNumber(realisasi as number)}%` : '-'}
+                  </td>
+                  <td className="px-1.5 py-1 text-center font-medium whitespace-nowrap" style={{ color: pct > 0 ? '#0f2358' : '#9ca3af' }}>
+                    {pct > 0 ? `${pct.toFixed(2)}%` : '-'}
+                  </td>
+                  <td className="px-1.5 py-1 align-top break-words">
+                    {isEditing
+                      ? <textarea rows={3} value={edit[tw.ketKey] ?? ''} onChange={e => updateField(tw.ketKey, e.target.value, false)} className={textInputClass} />
+                      : item[tw.ketKey]}
+                  </td>
                   <td className="px-1.5 py-1 align-top break-words">
                     {isEditing
                       ? <textarea rows={2} value={edit.program ?? ''} onChange={e => updateField('program', e.target.value, false)} className={textInputClass} />
@@ -249,22 +260,14 @@ export function LaporanIKUTable() {
                       ? <input type="number" value={edit.pagu ?? 0} onChange={e => updateField('pagu', e.target.value, true)} className={numInputClass} />
                       : formatRupiahFull(item.pagu)}
                   </td>
-                  {TW_COLS.map(tw => {
-                    const ang = realAng(tw);
-                    const angPct = liveAngPct(ang, pagu);
-                    return (
-                      <>
-                        <td className="px-1.5 py-1 text-right text-gray-600 whitespace-nowrap">
-                          {isEditing
-                            ? <input type="number" value={edit[tw.angKey] ?? 0} onChange={e => updateField(tw.angKey, e.target.value, true)} className={numInputClass} />
-                            : formatRupiahFull(item[tw.angKey])}
-                        </td>
-                        <td className="px-1.5 py-1 text-center font-medium text-gray-600 whitespace-nowrap">
-                          {isEditing ? `${angPct.toFixed(2)}%` : `${item[tw.pctAngKey].toFixed(2)}%`}
-                        </td>
-                      </>
-                    );
-                  })}
+                  <td className="px-1.5 py-1 text-right text-gray-600 whitespace-nowrap">
+                    {isEditing
+                      ? <input type="number" value={edit[tw.angKey] ?? 0} onChange={e => updateField(tw.angKey, e.target.value, true)} className={numInputClass} />
+                      : formatRupiahFull(item[tw.angKey])}
+                  </td>
+                  <td className="px-1.5 py-1 text-center font-medium text-gray-600 whitespace-nowrap">
+                    {isEditing ? `${angPct.toFixed(2)}%` : `${item[tw.pctAngKey].toFixed(2)}%`}
+                  </td>
                   <td className="px-1.5 py-1 text-center">
                     <div className="flex items-center justify-center gap-0.5">
                       {isEditing ? (
@@ -293,7 +296,7 @@ export function LaporanIKUTable() {
             })}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={30} className="px-4 py-8 text-center text-gray-400 text-xs">
+                <td colSpan={13} className="px-4 py-8 text-center text-gray-400 text-xs">
                   Belum ada data. Klik "Tambah Baris" untuk mengisi.
                 </td>
               </tr>
