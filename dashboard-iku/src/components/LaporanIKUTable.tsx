@@ -186,7 +186,7 @@ export function LaporanIKUTable() {
               <th rowSpan={2} className="px-1.5 py-1.5 font-semibold text-left whitespace-nowrap">SASARAN STRATEGIS</th>
               <th rowSpan={2} className="px-1.5 py-1.5 font-semibold text-left whitespace-nowrap">INDIKATOR</th>
               <th rowSpan={2} className="px-1.5 py-1.5 font-semibold text-left whitespace-nowrap">CARA PENGUKURAN INDIKATOR SASARAN</th>
-              <th rowSpan={2} className="px-1.5 py-1.5 font-semibold whitespace-nowrap">TARGET TAHUN 2026</th>
+              <th rowSpan={2} className="px-1.5 py-1.5 font-semibold whitespace-nowrap">TARGET 2026</th>
               <th colSpan={3} className="px-1.5 py-1.5 font-semibold whitespace-nowrap text-center">{tw.label}</th>
               <th rowSpan={2} className="px-1.5 py-1.5 font-semibold text-left whitespace-nowrap">PROGRAM</th>
               <th rowSpan={2} className="px-1.5 py-1.5 font-semibold whitespace-nowrap">PAGU</th>
