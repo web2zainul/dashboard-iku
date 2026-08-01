@@ -1,8 +1,8 @@
-import { Building2, Calendar, Filter, RotateCcw } from 'lucide-react';
+import { Building2, Calendar, Filter, RotateCcw, LogOut } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
 import { triwulanOptions, tahunOptions } from '../utils/sampleData';
 
-export function Header() {
+export function Header({ onLogout }: { onLogout: () => void }) {
   const { state, dispatch } = useDashboard();
 
   return (
@@ -63,6 +63,14 @@ export function Header() {
               title="Reset Filter"
             >
               <RotateCcw className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={onLogout}
+              className="flex items-center gap-1.5 bg-red-500/20 hover:bg-red-500/30 rounded-lg px-3 py-2 backdrop-blur-sm border border-red-300/20 text-sm transition-all"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4 text-red-200" />
             </button>
           </div>
         </div>

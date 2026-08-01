@@ -16,10 +16,25 @@ import { ExportButtons } from './components/ExportButtons';
 import { DetailModal } from './components/DetailModal';
 import type { ActiveTab } from './components/TabNav';
 import { LaporanIKUTable } from './components/LaporanIKUTable';
+import { LoginPage } from './components/LoginPage';
+
+const AUTH_KEY = 'prokeu_auth';
 
 function DashboardContent() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const prevTab = useRef<ActiveTab>('dashboard');
+  const [isAuthed, setIsAuthed] = useState(() => localStorage.getItem(AUTH_KEY) === '1');
+
+  const handleLogin = () => {
+    localStorage.setItem(AUTH_KEY, '1');
+    setIsAuthed(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem(AUTH_KEY);
+    setIsAuthed(false);
+    setActiveTab('dashboard');
+  };
 
   useEffect(() => {
     if (prevTab.current === activeTab) return;
@@ -28,9 +43,13 @@ function DashboardContent() {
     document.getElementById(targetId)?.scrollIntoView({ behavior: 'auto', block: 'start' });
   }, [activeTab]);
 
+  if (!isAuthed) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#f1f5f9]">
-      <Header />
+      <Header onLogout={handleLogout} />
 
       {activeTab === 'laporan' ? (
         <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
