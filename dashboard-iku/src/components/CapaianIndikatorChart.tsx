@@ -141,27 +141,29 @@ export function CapaianIndikatorChart() {
                 </span>
               </div>
 
-              <p className="mt-3 text-sm font-semibold text-[#1e293b] leading-snug min-h-[2.75rem]">
+              <p className="mt-3 text-sm font-semibold text-[#1e293b] leading-snug min-h-[3.75rem] line-clamp-3">
                 {d.nama}
               </p>
 
-              <div className="mt-3 w-full space-y-1.5 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-[#64748b]">Target</span>
-                  <span className="font-bold text-[#0D47A1]">{formatPct(d.target)}</span>
+              <div className="mt-auto w-full pt-3">
+                <div className="w-full space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-[#64748b]">Target</span>
+                    <span className="font-bold text-[#0D47A1]">{formatPct(d.target)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#64748b]">Realisasi</span>
+                    <span className="font-bold text-[#F9A825]">{formatPct(d.realisasi)}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-[#64748b]">Realisasi</span>
-                  <span className="font-bold text-[#F9A825]">{formatPct(d.realisasi)}</span>
-                </div>
-              </div>
 
-              {/* Progress bar realisasi */}
-              <div className="mt-2 w-full h-2 bg-[#E5E7EB] rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${Math.min(100, d.realisasi)}%`, backgroundColor: warna }}
-                />
+                {/* Progress bar realisasi */}
+                <div className="mt-2 w-full h-2 bg-[#E5E7EB] rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{ width: `${Math.min(100, d.realisasi)}%`, backgroundColor: warna }}
+                  />
+                </div>
               </div>
             </div>
           );
