@@ -13,7 +13,7 @@ import { CapaianIndikatorChart } from './components/CapaianIndikatorChart';
 import { ImportData } from './components/ImportData';
 import { ExportButtons } from './components/ExportButtons';
 import { DetailModal } from './components/DetailModal';
-import { TabNav, type ActiveTab } from './components/TabNav';
+import type { ActiveTab } from './components/TabNav';
 import { LaporanIKUTable } from './components/LaporanIKUTable';
 
 function DashboardContent() {
@@ -22,11 +22,10 @@ function DashboardContent() {
   return (
     <div className="min-h-screen bg-[#f1f5f9]">
       <Header />
-      <TabNav active={activeTab} onChange={setActiveTab} />
 
       {activeTab === 'laporan' ? (
         <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
-          <LaporanIKUTable />
+          <LaporanIKUTable activeTab={activeTab} onTabChange={setActiveTab} />
 
           <footer className="text-center text-xs text-gray-400 py-4 border-t border-gray-200">
             <p>Sumber Data: Formulir Pengukuran Kinerja BKPSDM Kota Cirebon — Laporan IKU TW I dan TW II Tahun 2026</p>
@@ -58,7 +57,7 @@ function DashboardContent() {
 
             <CapaianIndikatorChart />
 
-            <IKUTable />
+            <IKUTable activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
 
           <footer className="text-center text-xs text-gray-400 py-4 border-t border-gray-200">

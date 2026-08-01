@@ -4,6 +4,7 @@ import { useDashboard, toDb, fromDb } from '../context/DashboardContext';
 import { supabase } from '../lib/supabase';
 import { getKategori, getKategoriColor, getKategoriBgColor, getKategoriTextColor, formatNumber, formatRupiahFull, computeAggregate, isDetailRow } from '../utils/calculations';
 import { Notification } from './Notification';
+import { TabNav, type ActiveTab } from './TabNav';
 import type { IKUData } from '../types';
 
 type GroupAgg = {
@@ -109,7 +110,7 @@ function buildHierarchicalRows(data: IKUData[]): GroupedRow[] {
   return rows;
 }
 
-export function IKUTable() {
+export function IKUTable({ activeTab, onTabChange }: { activeTab: ActiveTab; onTabChange: (tab: ActiveTab) => void }) {
   const { state, dispatch } = useDashboard();
   const [sortCol, setSortCol] = useState<keyof IKUData | null>(null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -392,7 +393,9 @@ export function IKUTable() {
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
             DAFTAR REALISASI KINERJA DAN ANGGARAN
           </h3>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <TabNav active={activeTab} onChange={onTabChange} />
+            <span className="w-px h-6 bg-gray-200 mx-0.5" />
             <button
               onClick={() => {
                 setHideSubKosong(prev => !prev);

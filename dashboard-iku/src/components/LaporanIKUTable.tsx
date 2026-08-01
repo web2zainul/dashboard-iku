@@ -3,6 +3,7 @@ import { Pencil, Check, X, Plus, Trash2 } from 'lucide-react';
 import { useLaporan, laporanToDb, laporanFromDb } from '../context/LaporanIKUContext';
 import { supabase } from '../lib/supabase';
 import { formatNumber, formatRupiahFull } from '../utils/calculations';
+import { TabNav, type ActiveTab } from './TabNav';
 import type { LaporanIKU } from '../types';
 
 type EditState = Partial<LaporanIKU>;
@@ -63,7 +64,7 @@ function emptyRow(tahun: number, id: number): LaporanIKU {
   };
 }
 
-export function LaporanIKUTable() {
+export function LaporanIKUTable({ activeTab, onTabChange }: { activeTab: ActiveTab; onTabChange: (tab: ActiveTab) => void }) {
   const { rows, dispatch } = useLaporan();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<EditState>({});
@@ -153,7 +154,9 @@ export function LaporanIKUTable() {
             Sumber: Formulir Pengukuran Kinerja BKPSDM Kota Cirebon — Menampilkan {tw.label}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <TabNav active={activeTab} onChange={onTabChange} />
+          <span className="w-px h-6 bg-gray-200" />
           <div className="flex flex-wrap gap-1.5">
             {TW_OPTIONS.map((opt) => (
               <button
