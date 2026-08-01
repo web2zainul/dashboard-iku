@@ -272,7 +272,7 @@ export function LaporanIKUTable() {
                     {isEditing ? `${angPct.toFixed(2)}%` : `${item[tw.pctAngKey].toFixed(2)}%`}
                   </td>
                   <td className="px-1.5 py-1 text-center">
-                    <div className="flex items-center justify-center gap-0.5">
+                    <div className="flex items-start justify-center gap-0.5">
                       {isEditing ? (
                         <>
                           <button onClick={saveEdit} className="p-1 hover:bg-green-100 rounded transition-colors" title="Simpan">

@@ -60,6 +60,7 @@ body {
 .table-bordered th,
 .table-bordered td {
   border-right: 1px solid #e5e7eb;
+  vertical-align: top;
 }
 
 .table-bordered thead th {
