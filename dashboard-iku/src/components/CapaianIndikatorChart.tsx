@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Pencil, Check, X } from 'lucide-react';
 import {
   Chart,
   BarController,
@@ -9,38 +10,36 @@ import {
   Legend,
 } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { useKartu, kartuToDb, getKartuKategori, KARTU_KATEGORI_WARNA } from '../context/KartuIndikatorContext';
+import { supabase } from '../lib/supabase';
+import { Notification } from './Notification';
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend, ChartDataLabels);
 
-type Indikator = {
-  no: number;
-  nama: string;
-  target: number;
-  realisasi: number;
-  icon: string;
-  warna: string;
-};
-
-// Sumber data tunggal: grafik & kartu membaca dari array ini
-const INDIKATOR_DATA: Indikator[] = [
-  { no: 1, nama: 'Persentase Perencanaan Kebutuhan ASN yang Sesuai dengan Formasi', target: 83, realisasi: 0, icon: 'fa-clipboard-list', warna: '#EF4444' },
-  { no: 2, nama: 'Persentase Pengembangan Karier ASN sesuai Kompetensi', target: 100, realisasi: 50, icon: 'fa-person-running', warna: '#F97316' },
-  { no: 3, nama: 'Persentase ASN yang Ditingkatkan Kompetensinya', target: 91, realisasi: 76.92, icon: 'fa-user-graduate', warna: '#F59E0B' },
-  { no: 4, nama: 'Persentase Pegawai dengan SKP Bernilai Baik', target: 92, realisasi: 0, icon: 'fa-clipboard-check', warna: '#EF4444' },
-  { no: 5, nama: 'Persentase ASN Mendapatkan Pengembangan Kompetensi Teknis', target: 14.1, realisasi: 85.08, icon: 'fa-book-open', warna: '#10B981' },
-  { no: 6, nama: 'Persentase Realisasi Pendidikan dan Pelatihan yang Dilaksanakan', target: 100, realisasi: 50, icon: 'fa-graduation-cap', warna: '#F59E0B' },
-  { no: 7, nama: 'Indeks Kematangan Organisasi', target: 47.25, realisasi: 0, icon: 'fa-building-columns', warna: '#0D47A1' },
-];
-
 const formatPct = (v: number) => `${Number(v.toFixed(2)).toString().replace('.', ',')}%`;
 
-function hitungRataRata(): string {
-  const total = INDIKATOR_DATA.reduce((sum, d) => sum + d.realisasi, 0);
-  return formatPct(total / INDIKATOR_DATA.length);
-}
+const KATEGORI_LABEL: Record<string, string> = {
+  merah: 'MERAH',
+  kuning: 'KUNING',
+  hijau: 'HIJAU',
+};
 
 export function CapaianIndikatorChart() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const { rows, dispatch } = useKartu();
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editData, setEditData] = useState<{ target: number; realisasi: number }>({ target: 0, realisasi: 0 });
+  const [notif, setNotif] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  useEffect(() => {
+    if (!notif) return;
+    const t = setTimeout(() => setNotif(null), 4000);
+    return () => clearTimeout(t);
+  }, [notif]);
+
+  const rataRata = rows.length > 0
+    ? formatPct(rows.reduce((sum, d) => sum + d.realisasi, 0) / rows.length)
+    : '0%';
 
   useEffect(() => {
     const ctx = canvasRef.current;
@@ -49,18 +48,18 @@ export function CapaianIndikatorChart() {
     const chart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: INDIKATOR_DATA.map((_, i) => `Indikator ${i + 1}`),
+        labels: rows.map((_, i) => `Indikator ${i + 1}`),
         datasets: [
           {
             label: 'Target',
-            data: INDIKATOR_DATA.map((d) => d.target),
+            data: rows.map((d) => d.target),
             backgroundColor: '#0D47A1',
             borderRadius: 8,
             maxBarThickness: 44,
           },
           {
             label: 'Realisasi',
-            data: INDIKATOR_DATA.map((d) => d.realisasi),
+            data: rows.map((d) => d.realisasi),
             backgroundColor: '#F9A825',
             borderRadius: 8,
             maxBarThickness: 44,
@@ -111,7 +110,35 @@ export function CapaianIndikatorChart() {
     });
 
     return () => chart.destroy();
-  }, []);
+  }, [rows]);
+
+  const startEdit = (id: number, target: number, realisasi: number) => {
+    setEditingId(id);
+    setEditData({ target, realisasi });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditData({ target: 0, realisasi: 0 });
+  };
+
+  const saveEdit = async () => {
+    if (editingId === null) return;
+    const changes = { target: editData.target, realisasi: editData.realisasi };
+    try {
+      const dbFields = kartuToDb(changes);
+      const clean = Object.fromEntries(Object.entries(dbFields).filter(([_, v]) => v !== undefined));
+      const { error } = await supabase.from('kartu_indikator').update(clean).eq('id', editingId);
+      if (error) throw error;
+      setNotif({ type: 'success', message: 'Perubahan berhasil disimpan' });
+    } catch (err) {
+      console.error('Kartu Supabase update error:', err);
+      setNotif({ type: 'error', message: 'Gagal menyimpan ke database: ' + (err as Error).message });
+    }
+    dispatch({ type: 'UPDATE_ROW', payload: { id: editingId, changes } });
+    setEditingId(null);
+    setEditData({ target: 0, realisasi: 0 });
+  };
 
   return (
     <section className="space-y-5" style={{ fontFamily: "'Poppins', 'Inter', sans-serif" }}>
@@ -124,7 +151,7 @@ export function CapaianIndikatorChart() {
           <p className="text-[10px] uppercase tracking-wider text-[#64748b] font-semibold">
             Rata-rata Capaian Indikator Kinerja Program
           </p>
-          <p className="text-2xl md:text-3xl font-bold text-[#0D47A1]">{hitungRataRata()}</p>
+          <p className="text-2xl md:text-3xl font-bold text-[#0D47A1]">{rataRata}</p>
         </div>
       </div>
 
@@ -137,51 +164,106 @@ export function CapaianIndikatorChart() {
 
       {/* Kartu indikator: 4 kolom desktop, 3 tablet, 1 mobile */}
       <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-4 gap-5">
-        {INDIKATOR_DATA.map((d) => (
-          <div
-            key={d.no}
-            className="bg-white border border-[#E5E7EB] rounded-[18px] shadow-sm p-5 flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl"
-          >
-            <div className="relative">
-              <div
-                className="w-14 h-14 rounded-full flex items-center justify-center text-white shadow-md"
-                style={{ backgroundColor: d.warna }}
-              >
-                <i className={`fa-solid ${d.icon} text-xl`} />
+        {rows.map((d) => {
+          const kategori = getKartuKategori(d.realisasi, d.target);
+          const warna = KARTU_KATEGORI_WARNA[kategori];
+          const isEditing = editingId === d.id;
+          const numInputClass = "w-full px-1.5 py-1 text-[10px] text-right border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none bg-blue-50/60";
+          return (
+            <div
+              key={d.id}
+              className="bg-white border border-[#E5E7EB] rounded-[18px] shadow-sm p-5 flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl"
+            >
+              <div className="relative">
+                <div
+                  className="w-14 h-14 rounded-full flex items-center justify-center text-white shadow-md"
+                  style={{ backgroundColor: warna }}
+                >
+                  <i className={`fa-solid ${d.icon} text-xl`} />
+                </div>
+                <span
+                  className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-white border-2 text-[10px] font-bold flex items-center justify-center"
+                  style={{ color: warna, borderColor: warna }}
+                >
+                  {d.no}
+                </span>
               </div>
+
+              <p className="mt-3 text-sm font-semibold text-[#1e293b] leading-snug min-h-[2.75rem]">
+                {d.nama}
+              </p>
+
               <span
-                className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-white border-2 text-[10px] font-bold flex items-center justify-center"
-                style={{ color: d.warna, borderColor: d.warna }}
+                className="mt-2 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider text-white"
+                style={{ backgroundColor: warna }}
               >
-                {d.no}
+                {KATEGORI_LABEL[kategori]}
               </span>
-            </div>
 
-            <p className="mt-3 text-sm font-semibold text-[#1e293b] leading-snug min-h-[2.75rem]">
-              {d.nama}
-            </p>
-
-            <div className="mt-3 w-full space-y-1.5 text-xs">
-              <div className="flex justify-between">
-                <span className="text-[#64748b]">Target</span>
-                <span className="font-bold text-[#0D47A1]">{formatPct(d.target)}</span>
+              <div className="mt-3 w-full space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-[#64748b]">Target</span>
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      value={editData.target}
+                      onChange={(e) => setEditData(prev => ({ ...prev, target: e.target.value === '' ? 0 : Number(e.target.value) }))}
+                      className={`${numInputClass} w-20`}
+                    />
+                  ) : (
+                    <span className="font-bold text-[#0D47A1]">{formatPct(d.target)}</span>
+                  )}
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#64748b]">Realisasi</span>
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      value={editData.realisasi}
+                      onChange={(e) => setEditData(prev => ({ ...prev, realisasi: e.target.value === '' ? 0 : Number(e.target.value) }))}
+                      className={`${numInputClass} w-20`}
+                    />
+                  ) : (
+                    <span className="font-bold text-[#F9A825]">{formatPct(d.realisasi)}</span>
+                  )}
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[#64748b]">Realisasi</span>
-                <span className="font-bold text-[#F9A825]">{formatPct(d.realisasi)}</span>
+
+              {/* Progress bar realisasi */}
+              <div className="mt-2 w-full h-2 bg-[#E5E7EB] rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{ width: `${Math.min(100, d.realisasi)}%`, backgroundColor: warna }}
+                />
+              </div>
+
+              {/* Aksi edit */}
+              <div className="mt-3">
+                {isEditing ? (
+                  <div className="flex items-center gap-1.5">
+                    <button onClick={saveEdit} className="p-1.5 rounded-lg hover:bg-green-100 transition-colors" title="Simpan">
+                      <Check className="w-4 h-4 text-green-600" />
+                    </button>
+                    <button onClick={cancelEdit} className="p-1.5 rounded-lg hover:bg-red-100 transition-colors" title="Batal">
+                      <X className="w-4 h-4 text-red-500" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => startEdit(d.id, d.target, d.realisasi)}
+                    className="p-1.5 rounded-lg hover:bg-yellow-50 transition-colors"
+                    title="Edit Target & Realisasi"
+                  >
+                    <Pencil className="w-4 h-4 text-yellow-500" />
+                  </button>
+                )}
               </div>
             </div>
-
-            {/* Progress bar realisasi */}
-            <div className="mt-2 w-full h-2 bg-[#E5E7EB] rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${Math.min(100, d.realisasi)}%`, backgroundColor: d.warna }}
-              />
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
+      {notif && <Notification type={notif.type} message={notif.message} onClose={() => setNotif(null)} />}
     </section>
   );
 }

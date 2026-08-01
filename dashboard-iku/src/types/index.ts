@@ -56,6 +56,17 @@ export interface KPIResult {
   persentaseAnggaran: number;
 }
 
+export type KategoriKartu = 'merah' | 'kuning' | 'hijau';
+
+export interface KartuIndikator {
+  id: number;
+  no: number;
+  nama: string;
+  target: number;
+  realisasi: number;
+  icon: string;
+}
+
 export interface LaporanIKU {
   id: number;
   no: number;

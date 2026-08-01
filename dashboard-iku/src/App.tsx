@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { DashboardProvider } from './context/DashboardContext';
 import { LaporanProvider } from './context/LaporanIKUContext';
+import { KartuProvider } from './context/KartuIndikatorContext';
 import { Header } from './components/Header';
 import { KPICards } from './components/KPICards';
 import { GaugeChart } from './components/GaugeChart';
@@ -33,6 +34,7 @@ function DashboardContent() {
 
       {activeTab === 'laporan' ? (
         <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
+          <CapaianIndikatorChart />
           <LaporanIKUTable activeTab={activeTab} onTabChange={setActiveTab} />
 
           <footer className="text-center text-xs text-gray-400 py-4 border-t border-gray-200">
@@ -85,7 +87,9 @@ function App() {
   return (
     <DashboardProvider>
       <LaporanProvider>
-        <DashboardContent />
+        <KartuProvider>
+          <DashboardContent />
+        </KartuProvider>
       </LaporanProvider>
     </DashboardProvider>
   );
