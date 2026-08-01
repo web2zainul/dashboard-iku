@@ -387,7 +387,7 @@ export function IKUTable({ activeTab, onTabChange }: { activeTab: ActiveTab; onT
   }, [state.data, state.filterProgram, state.filterKegiatan]);
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+    <div id="daftar-realisasi" className="bg-white rounded-2xl shadow-lg overflow-hidden">
       <div className="p-4 border-b border-gray-100">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">

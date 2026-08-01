@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { DashboardProvider } from './context/DashboardContext';
 import { LaporanProvider } from './context/LaporanIKUContext';
 import { Header } from './components/Header';
@@ -18,6 +18,14 @@ import { LaporanIKUTable } from './components/LaporanIKUTable';
 
 function DashboardContent() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+  const prevTab = useRef<ActiveTab>('dashboard');
+
+  useEffect(() => {
+    if (prevTab.current === activeTab) return;
+    prevTab.current = activeTab;
+    const targetId = activeTab === 'laporan' ? 'laporan-iku-table' : 'daftar-realisasi';
+    document.getElementById(targetId)?.scrollIntoView({ behavior: 'auto', block: 'start' });
+  }, [activeTab]);
 
   return (
     <div className="min-h-screen bg-[#f1f5f9]">
