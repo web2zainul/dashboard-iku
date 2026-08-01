@@ -143,6 +143,32 @@ export function calculateDistribution(data: IKUData[]): DistributionItem[] {
   ];
 }
 
+export function calculateSubDistribution(data: IKUData[]): DistributionItem[] {
+  const details = data.filter(isDetailRow);
+  const map = new Map<string, IKUData[]>();
+  for (const d of details) {
+    const key = `${d.program}||${d.kegiatan}||${d.subKegiatan}`;
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(d);
+  }
+  const total = map.size;
+  let sangatBaik = 0;
+  let baik = 0;
+  let kurang = 0;
+  for (const items of map.values()) {
+    const pct = computeAggregate(items).persentase;
+    if (pct > 100) sangatBaik++;
+    else if (pct >= 100) baik++;
+    else kurang++;
+  }
+  const pctOf = (n: number) => total > 0 ? Math.round((n / total) * 10000) / 100 : 0;
+  return [
+    { name: '> 100% (Sangat Baik)', value: sangatBaik, percentage: pctOf(sangatBaik), color: '#10b981' },
+    { name: '100% (Baik)', value: baik, percentage: pctOf(baik), color: '#3b82f6' },
+    { name: '< 100% (Kurang)', value: kurang, percentage: pctOf(kurang), color: '#ef4444' },
+  ];
+}
+
 export function calculateQuarterlyAverages(data: IKUData[]): { triwulan: string; rataRata: number | null }[] {
   data = data.filter(isDetailRow);
   const calc = (vals: (number | null)[]) => {

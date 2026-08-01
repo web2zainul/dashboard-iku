@@ -340,6 +340,11 @@ export function IKUTable() {
 
   const hierarchicalRows = useMemo(() => buildHierarchicalRows(filteredData), [filteredData]);
 
+  const subKegiatanNos = useMemo(() => {
+    let n = 0;
+    return hierarchicalRows.map(row => (row.type === 'subKegiatan' ? ++n : 0));
+  }, [hierarchicalRows]);
+
   const handleSort = (col: keyof IKUData) => {
     const newDir = sortCol === col && sortDir === 'asc' ? 'desc' : 'asc';
     setSortCol(col);
@@ -622,7 +627,9 @@ export function IKUTable() {
                 return (
                   <tr key={`sub-${idx}`} className="bg-gray-50/50 border-b border-gray-100">
                     <td className="px-0.5 py-0.5" />
-                    <td className="px-1 py-0.5 pl-7 font-medium text-gray-500 italic break-words align-top">{row.label}</td>
+                    <td className="px-1 py-0.5 pl-7 font-medium text-gray-500 italic break-words align-top">
+                      <span className="text-gray-400 not-italic mr-1">{subKegiatanNos[idx]}.</span>{row.label}
+                    </td>
                     <td className="px-1 py-0.5 text-black text-[10px] align-top">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.indikator} onChange={e => updateEditGroupField('indikator', e.target.value)} className={gTextInputClass} /> : (child?.indikator || '-')}</td>
                     <td className="px-0.5 py-0.5 text-center text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.satuan} onChange={e => updateEditGroupField('satuan', e.target.value)} className={`${gTextInputClass} text-center`} /> : (child?.satuan || '-')}</td>
                     <td className="px-0.5 py-0.5 text-right font-medium">

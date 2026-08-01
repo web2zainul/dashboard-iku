@@ -1,6 +1,6 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useDashboard } from '../context/DashboardContext';
-import { calculateDistribution, isDetailRow } from '../utils/calculations';
+import { calculateSubDistribution } from '../utils/calculations';
 
 type TooltipProps = { active?: boolean; payload?: Array<{ name: string; value: number; payload: { color: string; percentage: number } }> };
 
@@ -10,7 +10,7 @@ const CustomTooltip = ({ active, payload }: TooltipProps) => {
     return (
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-3">
         <p className="text-sm font-semibold" style={{ color: data.payload.color }}>{data.name}</p>
-        <p className="text-lg font-bold text-gray-800">{data.value} indikator ({data.payload.percentage}%)</p>
+        <p className="text-lg font-bold text-gray-800">{data.value} sub kegiatan ({data.payload.percentage}%)</p>
       </div>
     );
   }
@@ -19,8 +19,8 @@ const CustomTooltip = ({ active, payload }: TooltipProps) => {
 
 export function DistributionChart() {
   const { state } = useDashboard();
-  const distribution = calculateDistribution(state.data);
-  const total = state.data.filter(isDetailRow).length;
+  const distribution = calculateSubDistribution(state.data);
+  const total = distribution.reduce((sum, d) => sum + d.value, 0);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 card-hover h-full">
@@ -40,7 +40,7 @@ export function DistributionChart() {
         </ResponsiveContainer>
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <div className="text-2xl font-bold text-gray-800">{total}</div>
-          <div className="text-[10px] text-gray-400">Indikator</div>
+          <div className="text-[10px] text-gray-400">Sub Kegiatan</div>
         </div>
       </div>
       <div className="mt-3 space-y-1.5">
