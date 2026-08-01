@@ -55,3 +55,25 @@ export interface KPIResult {
   realisasiAnggaran: number;
   persentaseAnggaran: number;
 }
+
+export interface LaporanIKU {
+  id: number;
+  no: number;
+  sasaranStrategis: string;
+  indikator: string;
+  caraPengukuran: string;
+  targetTahun: number;
+  realisasiTW1: number | null;
+  persentaseTW1: number;
+  ketTW1: string;
+  realisasiTW2: number | null;
+  persentaseTW2: number;
+  ketTW2: string;
+  program: string;
+  pagu: number;
+  realisasiAnggaranTW1: number;
+  persentaseAnggaranTW1: number;
+  realisasiAnggaranTW2: number;
+  persentaseAnggaranTW2: number;
+  tahun: number;
+}
