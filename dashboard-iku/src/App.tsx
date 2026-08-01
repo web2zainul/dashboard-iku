@@ -7,6 +7,7 @@ import { BudgetComparisonChart } from './components/BudgetComparisonChart';
 import { QuarterlyBudgetChart } from './components/QuarterlyBudgetChart';
 import { CategoryLegend } from './components/CategoryLegend';
 import { IKUTable } from './components/IKUTable';
+import { CapaianIndikatorChart } from './components/CapaianIndikatorChart';
 import { ImportData } from './components/ImportData';
 import { ExportButtons } from './components/ExportButtons';
 import { DetailModal } from './components/DetailModal';
@@ -35,6 +36,8 @@ function DashboardContent() {
           </div>
 
           <CategoryLegend />
+
+          <CapaianIndikatorChart />
 
           <IKUTable />
         </div>
