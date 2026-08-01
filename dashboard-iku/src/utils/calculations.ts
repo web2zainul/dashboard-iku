@@ -147,7 +147,8 @@ export function calculateSubDistribution(data: IKUData[]): DistributionItem[] {
   const details = data.filter(isDetailRow);
   const map = new Map<string, IKUData[]>();
   for (const d of details) {
-    const key = `${d.program}||${d.kegiatan}||${d.subKegiatan}`;
+    if (!d.kegiatan) continue;
+    const key = `${d.program}||${d.programIndikator}||${d.kegiatan}||${d.subKegiatan}`;
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(d);
   }
