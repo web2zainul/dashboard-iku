@@ -114,6 +114,7 @@ export function IKUTable() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<Partial<IKUData>>({});
+  const [hideSubKosong, setHideSubKosong] = useState(false);
 
   const startEdit = useCallback((item: IKUData) => {
     setEditingId(item.id);
@@ -318,6 +319,9 @@ export function IKUTable() {
     if (state.filterSubKegiatan !== 'Semua') {
       result = result.filter(d => d.subKegiatan === state.filterSubKegiatan);
     }
+    if (hideSubKosong) {
+      result = result.filter(d => [d.realisasiTW1, d.realisasiTW2, d.realisasiTW3, d.realisasiTW4].some(v => v != null));
+    }
     if (sortCol) {
       result.sort((a, b) => {
         const aVal = a[sortCol];
@@ -332,7 +336,7 @@ export function IKUTable() {
       });
     }
     return result;
-  }, [state.data, state.searchQuery, state.filterKategori, state.filterProgram, state.filterKegiatan, state.filterSubKegiatan, sortCol, sortDir]);
+  }, [state.data, state.searchQuery, state.filterKategori, state.filterProgram, state.filterKegiatan, state.filterSubKegiatan, hideSubKosong, sortCol, sortDir]);
 
   const hierarchicalRows = useMemo(() => buildHierarchicalRows(filteredData), [filteredData]);
 
@@ -405,6 +409,16 @@ export function IKUTable() {
                 {k}
               </button>
             ))}
+            <button
+              onClick={() => {
+                setHideSubKosong(prev => !prev);
+                dispatch({ type: 'SET_PAGE', payload: 1 });
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${hideSubKosong ? 'bg-[#0f2358] text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              title="Sembunyikan sub kegiatan yang TW I-IV tidak terisi"
+            >
+              Sembunyikan Sub Kegiatan Kosong
+            </button>
             <button
               onClick={async () => {
                 try {
