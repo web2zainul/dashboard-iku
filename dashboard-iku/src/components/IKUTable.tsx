@@ -1,8 +1,9 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Search, ChevronUp, ChevronDown, Eye, Pencil, Check, X, Plus, Trash2 } from 'lucide-react';
 import { useDashboard, toDb, fromDb } from '../context/DashboardContext';
 import { supabase } from '../lib/supabase';
 import { getKategori, getKategoriColor, getKategoriBgColor, getKategoriTextColor, formatNumber, formatRupiahFull, computeAggregate, isDetailRow } from '../utils/calculations';
+import { Notification } from './Notification';
 import type { IKUData } from '../types';
 
 type GroupAgg = {
@@ -115,6 +116,13 @@ export function IKUTable() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<Partial<IKUData>>({});
   const [hideSubKosong, setHideSubKosong] = useState(false);
+  const [notif, setNotif] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  useEffect(() => {
+    if (!notif) return;
+    const t = setTimeout(() => setNotif(null), 4000);
+    return () => clearTimeout(t);
+  }, [notif]);
 
   const startEdit = useCallback((item: IKUData) => {
     setEditingId(item.id);
@@ -150,9 +158,12 @@ export function IKUTable() {
       const clean = Object.fromEntries(
         Object.entries(dbFields).filter(([_, v]) => v !== undefined)
       );
-      await supabase.from('iku_data').update(clean).eq('id', editingId);
+      const { error } = await supabase.from('iku_data').update(clean).eq('id', editingId);
+      if (error) throw error;
+      setNotif({ type: 'success', message: 'Perubahan berhasil disimpan' });
     } catch (err) {
       console.error('Supabase update error:', err);
+      setNotif({ type: 'error', message: 'Gagal menyimpan ke database: ' + (err as Error).message });
     }
     dispatch({ type: 'UPDATE_ROW', payload: { id: editingId, changes: editData } });
     setEditingId(null);
@@ -238,17 +249,21 @@ export function IKUTable() {
       const dbFields = toDb(record);
       const clean = Object.fromEntries(Object.entries(dbFields).filter(([_, v]) => v !== undefined));
       if (editingGroup.id !== null) {
-        await supabase.from('iku_data').update(clean).eq('id', editingGroup.id);
+        const { error } = await supabase.from('iku_data').update(clean).eq('id', editingGroup.id);
+        if (error) throw error;
+        setNotif({ type: 'success', message: 'Perubahan berhasil disimpan' });
         dispatch({ type: 'UPDATE_ROW', payload: { id: editingGroup.id, changes: record } });
       } else {
         const { data, error } = await supabase.from('iku_data').insert(clean).select();
         if (error) throw error;
+        setNotif({ type: 'success', message: 'Perubahan berhasil disimpan' });
         if (data?.[0]) {
           dispatch({ type: 'ADD_ROW', payload: fromDb(data[0]) });
         }
       }
     } catch (err) {
       console.error('Supabase group save error:', err);
+      setNotif({ type: 'error', message: 'Gagal menyimpan ke database: ' + (err as Error).message });
     }
     if (editingGroup.level === 2) {
       const detailChanges = {
@@ -373,9 +388,35 @@ export function IKUTable() {
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
       <div className="p-4 border-b border-gray-100">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-          DAFTAR REALISASI KINERJA DAN ANGGARAN
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            DAFTAR REALISASI KINERJA DAN ANGGARAN
+          </h3>
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              onClick={() => {
+                setHideSubKosong(prev => !prev);
+                dispatch({ type: 'SET_PAGE', payload: 1 });
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${hideSubKosong ? 'bg-[#0f2358] text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              title="Sembunyikan sub kegiatan yang TW I-IV tidak terisi"
+            >
+              Sembunyikan Sub Kegiatan Kosong
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  const { data, error } = await supabase.from('iku_data').insert({ tahun: state.tahun, level: 3 }).select();
+                  if (error) throw error;
+                  if (data?.[0]) dispatch({ type: 'ADD_ROW', payload: fromDb(data[0]) });
+                } catch (err) { console.error('Supabase insert error:', err); }
+              }}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-all flex items-center gap-1"
+            >
+              <Plus className="w-3 h-3" /> Tambah Baris
+            </button>
+          </div>
+        </div>
 
         <div className="flex flex-col gap-3">
           <div className="relative">
@@ -414,27 +455,6 @@ export function IKUTable() {
                 {k}
               </button>
             ))}
-            <button
-              onClick={() => {
-                setHideSubKosong(prev => !prev);
-                dispatch({ type: 'SET_PAGE', payload: 1 });
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${hideSubKosong ? 'bg-[#0f2358] text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-              title="Sembunyikan sub kegiatan yang TW I-IV tidak terisi"
-            >
-              Sembunyikan Sub Kegiatan Kosong
-            </button>
-            <button
-              onClick={async () => {
-                try {
-                  const { data } = await supabase.from('iku_data').insert({ tahun: state.tahun, level: 3 }).select();
-                  if (data?.[0]) dispatch({ type: 'ADD_ROW', payload: fromDb(data[0]) });
-                } catch (err) { console.error('Supabase insert error:', err); }
-              }}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-all flex items-center gap-1"
-            >
-              <Plus className="w-3 h-3" /> Tambah Baris
-            </button>
           </div>
         </div>
       </div>
@@ -513,8 +533,8 @@ export function IKUTable() {
                   <tr key={`prog-${idx}`} className="bg-[#0f2358]/5 border-b border-gray-200">
                     <td className="px-0.5 py-1" />
                     <td className="px-1 py-1 font-bold text-[#0f2358] break-words align-top">{row.label}</td>
-                    <td className="px-1 py-1 text-black text-[10px] align-top">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.indikator} onChange={e => updateEditGroupField('indikator', e.target.value)} className={gTextInputClass} /> : '-'}</td>
-                    <td className="px-0.5 py-1 text-center text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.satuan} onChange={e => updateEditGroupField('satuan', e.target.value)} className={`${gTextInputClass} text-center`} /> : '-'}</td>
+                    <td className="px-1 py-1 text-black text-[10px] align-top">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.indikator} onChange={e => updateEditGroupField('indikator', e.target.value)} className={gTextInputClass} /> : (row.record?.indikator || '-')}</td>
+                    <td className="px-0.5 py-1 text-center text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.satuan} onChange={e => updateEditGroupField('satuan', e.target.value)} className={`${gTextInputClass} text-center`} /> : (row.record?.satuan || '-')}</td>
                     <td className="px-0.5 py-1 text-right text-gray-700 font-semibold">
                       {isGroupEditing ? <input type="number" value={agg.targetTahun} onChange={e => updateEditGroupField('targetTahun', e.target.value)} className={gNumInputClass} /> : formatNumber(agg.targetTahun)}
                     </td>
@@ -571,7 +591,7 @@ export function IKUTable() {
                     <td className="px-0.5 py-0.5" />
                     <td className="px-1 py-0.5 pl-4 font-semibold text-gray-700 break-words align-top">{row.label}</td>
                     <td className="px-1 py-0.5 text-black text-[10px] align-top">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.indikator} onChange={e => updateEditGroupField('indikator', e.target.value)} className={gTextInputClass} /> : (row.record?.indikator || '-')}</td>
-                    <td className="px-0.5 py-0.5 text-center text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.satuan} onChange={e => updateEditGroupField('satuan', e.target.value)} className={`${gTextInputClass} text-center`} /> : '-'}</td>
+                    <td className="px-0.5 py-0.5 text-center text-gray-400 text-[8px]">{isGroupEditing && editGroupData ? <input type="text" value={editGroupData.satuan} onChange={e => updateEditGroupField('satuan', e.target.value)} className={`${gTextInputClass} text-center`} /> : (row.record?.satuan || '-')}</td>
                     <td className="px-0.5 py-0.5 text-right text-gray-700 font-semibold">
                       {isGroupEditing ? <input type="number" value={agg.targetTahun} onChange={e => updateEditGroupField('targetTahun', e.target.value)} className={gNumInputClass} /> : formatNumber(agg.targetTahun)}
                     </td>
@@ -836,6 +856,8 @@ export function IKUTable() {
           </tbody>
         </table>
       </div>
+
+      {notif && <Notification type={notif.type} message={notif.message} onClose={() => setNotif(null)} />}
     </div>
   );
 }
