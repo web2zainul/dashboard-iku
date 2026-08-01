@@ -65,8 +65,6 @@ function DashboardContent() {
 
             <CategoryLegend />
 
-            <CapaianIndikatorChart />
-
             <IKUTable activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
 

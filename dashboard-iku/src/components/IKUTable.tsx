@@ -486,19 +486,19 @@ export function IKUTable({ activeTab, onTabChange }: { activeTab: ActiveTab; onT
           <thead className="bg-[#0f2358] text-white text-[8px] uppercase sticky top-0 z-10">
             <tr>
               <th className="px-0.5 py-1 text-center font-semibold">No</th>
-              <th className="px-1 py-1 text-left font-semibold">
-                <div className="flex items-center gap-0.5 cursor-pointer hover:text-blue-200 whitespace-nowrap" onClick={() => handleSort('program')}>
+              <th className="px-1 py-1 text-center font-semibold">
+                <div className="flex items-center justify-center gap-0.5 cursor-pointer hover:text-blue-200 whitespace-nowrap" onClick={() => handleSort('program')}>
                   PROGRAM / KEGIATAN <SortIcon col="program" />
                 </div>
               </th>
-              <th className="px-1 py-1 text-left font-semibold">
-                <div className="flex items-center gap-0.5 cursor-pointer hover:text-blue-200 whitespace-nowrap" onClick={() => handleSort('indikator')}>
+              <th className="px-1 py-1 text-center font-semibold">
+                <div className="flex items-center justify-center gap-0.5 cursor-pointer hover:text-blue-200 whitespace-nowrap" onClick={() => handleSort('indikator')}>
                   INDIKATOR KINERJA <SortIcon col="indikator" />
                 </div>
               </th>
               <th className="px-0.5 py-1 text-center font-semibold">SATUAN</th>
-              <th className="px-0.5 py-1 text-right font-semibold">
-                <div className="flex items-center justify-end gap-0.5 cursor-pointer hover:text-blue-200 whitespace-nowrap" onClick={() => handleSort('targetTahun')}>
+              <th className="px-0.5 py-1 text-center font-semibold">
+                <div className="flex items-center justify-center gap-0.5 cursor-pointer hover:text-blue-200 whitespace-nowrap" onClick={() => handleSort('targetTahun')}>
                   TARGET <SortIcon col="targetTahun" />
                 </div>
               </th>
@@ -506,19 +506,19 @@ export function IKUTable({ activeTab, onTabChange }: { activeTab: ActiveTab; onT
               <th className="px-0.5 py-1 text-center font-semibold">TW II</th>
               <th className="px-0.5 py-1 text-center font-semibold">TW III</th>
               <th className="px-0.5 py-1 text-center font-semibold">TW IV</th>
-              <th className="px-0.5 py-1 text-right font-semibold">
-                <div className="flex items-center justify-end gap-0.5 cursor-pointer hover:text-blue-200 whitespace-nowrap" onClick={() => handleSort('realisasiTahun')}>
+              <th className="px-0.5 py-1 text-center font-semibold">
+                <div className="flex items-center justify-center gap-0.5 cursor-pointer hover:text-blue-200 whitespace-nowrap" onClick={() => handleSort('realisasiTahun')}>
                   REALISASI <SortIcon col="realisasiTahun" />
                 </div>
               </th>
               <th className="px-0.5 py-1 text-center font-semibold">
                 <div className="flex items-center justify-center gap-0.5 cursor-pointer hover:text-blue-200 whitespace-nowrap" onClick={() => handleSort('persentase')}>
-                  % CAPAIAN <SortIcon col="persentase" />
+                  CAPAIAN <SortIcon col="persentase" />
                 </div>
               </th>
-              <th className="px-0.5 py-1 text-center font-semibold">CAPAIAN</th>
-              <th className="px-0.5 py-1 text-right font-semibold">TARGET</th>
-              <th className="px-0.5 py-1 text-right font-semibold">REALISASI</th>
+              <th className="px-0.5 py-1 text-center font-semibold">PROGRESS</th>
+              <th className="px-0.5 py-1 text-center font-semibold">TARGET</th>
+              <th className="px-0.5 py-1 text-center font-semibold">REALISASI</th>
               <th className="px-0.5 py-1 text-center font-semibold">% ANGG</th>
               <th className="px-0.5 py-1 text-center font-semibold">STATUS</th>
               <th className="px-0.5 py-1"></th>
