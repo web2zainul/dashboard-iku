@@ -516,7 +516,7 @@ export function IKUTable({ activeTab, onTabChange }: { activeTab: ActiveTab; onT
                   CAPAIAN <SortIcon col="persentase" />
                 </div>
               </th>
-              <th className="px-0.5 py-1 text-center font-semibold">PROGRESS</th>
+              <th className="px-0.5 py-1 text-center font-semibold"></th>
               <th className="px-0.5 py-1 text-center font-semibold">TARGET</th>
               <th className="px-0.5 py-1 text-center font-semibold">REALISASI</th>
               <th className="px-0.5 py-1 text-center font-semibold">% ANGG</th>
