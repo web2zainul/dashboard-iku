@@ -3,7 +3,7 @@ import type { KartuIndikator, KategoriKartu } from '../types';
 import { sampleKartuIndikator } from '../utils/sampleKartuIndikator';
 import { supabase } from '../lib/supabase';
 
-const STORAGE_KEY = 'kartu_indikator_data';
+const STORAGE_KEY = 'kartu_indikator_data_v2';
 
 type KartuAction =
   | { type: 'SET_ROWS'; payload: KartuIndikator[] }

@@ -25,9 +25,9 @@ CREATE POLICY "Allow anon delete" ON kartu_indikator FOR DELETE USING (true);
 INSERT INTO kartu_indikator (no, nama, target, realisasi, icon) VALUES
 (1, 'Persentase Perencanaan Kebutuhan ASN yang Sesuai dengan Formasi', 83, 0, 'fa-clipboard-list'),
 (2, 'Persentase Pengembangan Karier ASN sesuai Kompetensi', 100, 50, 'fa-person-running'),
-(3, 'Persentase ASN yang Ditingkatkan Kompetensinya', 91, 76.92, 'fa-user-graduate'),
+(3, 'Persentase ASN yang Ditingkatkan Kompetensinya', 91, 70, 'fa-user-graduate'),
 (4, 'Persentase Pegawai dengan SKP Bernilai Baik', 92, 0, 'fa-clipboard-check'),
-(5, 'Persentase ASN Mendapatkan Pengembangan Kompetensi Teknis', 14.10, 85.08, 'fa-book-open'),
+(5, 'Persentase ASN Mendapatkan Pengembangan Kompetensi Teknis', 14.10, 12, 'fa-book-open'),
 (6, 'Persentase Realisasi Pendidikan dan Pelatihan yang Dilaksanakan', 100, 50, 'fa-graduation-cap'),
 (7, 'Indeks Kematangan Organisasi', 47.25, 0, 'fa-building-columns')
 ON CONFLICT (id) DO NOTHING;
