@@ -53,8 +53,8 @@ function DashboardContent() {
 
       {activeTab === 'laporan' ? (
         <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
-          <CapaianIndikatorChart />
           <LaporanIKUTable activeTab={activeTab} onTabChange={setActiveTab} />
+          <CapaianIndikatorChart />
 
           <footer className="text-center text-xs text-gray-400 py-4 border-t border-gray-200">
             <p>Sumber Data: Formulir Pengukuran Kinerja BKPSDM Kota Cirebon</p>

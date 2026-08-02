@@ -144,7 +144,15 @@ export function LaporanIKUTable({ activeTab, onTabChange }: { activeTab: ActiveT
   };
 
   return (
-    <div id="laporan-iku-table" className="bg-white rounded-2xl shadow-lg overflow-hidden">
+    <section className="space-y-5" style={{ fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+      {/* Banner judul biru */}
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-[#0D47A1] rounded-[12px] px-5 py-4 shadow-lg">
+        <h2 className="text-white text-lg md:text-2xl font-bold tracking-wide">
+          CAPAIAN INDIKATOR KINERJA UTAMA
+        </h2>
+      </div>
+
+      <div id="laporan-iku-table" className="bg-white rounded-2xl shadow-lg overflow-hidden">
       <div className="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -310,6 +318,7 @@ export function LaporanIKUTable({ activeTab, onTabChange }: { activeTab: ActiveT
           </tbody>
         </table>
       </div>
-    </div>
+      </div>
+    </section>
   );
 }
