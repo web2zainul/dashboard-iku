@@ -57,7 +57,7 @@ function DashboardContent() {
           <LaporanIKUTable activeTab={activeTab} onTabChange={setActiveTab} />
 
           <footer className="text-center text-xs text-gray-400 py-4 border-t border-gray-200">
-            <p>Sumber Data: Formulir Pengukuran Kinerja BKPSDM Kota Cirebon — Laporan IKU TW I dan TW II Tahun 2026</p>
+            <p>Sumber Data: Formulir Pengukuran Kinerja BKPSDM Kota Cirebon</p>
             <p className="mt-1">Terakhir diperbarui: {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
           </footer>
         </main>
