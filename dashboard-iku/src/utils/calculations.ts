@@ -79,6 +79,10 @@ export function formatRupiahFull(val: number): string {
   return `Rp. ${val.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+export function formatRupiahNoDec(val: number): string {
+  return `Rp. ${val.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;
+}
+
 export function formatNumber(val: number): string {
   return val.toLocaleString('id-ID');
 }
@@ -141,6 +145,22 @@ export function calculateDistribution(data: IKUData[]): DistributionItem[] {
     { name: '100% (Baik)', value: baik, percentage: pct(baik), color: '#3b82f6' },
     { name: '< 100% (Kurang)', value: kurang, percentage: pct(kurang), color: '#ef4444' },
   ];
+}
+
+export function countSubKegiatanTerisi(data: IKUData[]): number {
+  const details = data.filter(isDetailRow);
+  const map = new Map<string, IKUData[]>();
+  for (const d of details) {
+    if (!d.kegiatan) continue;
+    const key = `${d.program}||${d.programIndikator}||${d.kegiatan}||${d.subKegiatan}`;
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(d);
+  }
+  let jumlah = 0;
+  for (const items of map.values()) {
+    if (computeAggregate(items).targetTahun > 0) jumlah++;
+  }
+  return jumlah;
 }
 
 export function calculateSubDistribution(data: IKUData[]): DistributionItem[] {
