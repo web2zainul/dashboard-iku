@@ -30,7 +30,7 @@ export function LoginPage({ onLogin }: { onLogin: () => void }) {
             />
           </div>
           <h1 className="text-xl font-bold text-[#0f2358]">DASHBOARD KINERJA DAN ANGGARAN</h1>
-          <p className="text-xs text-gray-500 mt-1">BADAN KEPEGAWAIAN DAN PENGEMBANGAN SDM KOTA CIREBON</p>
+          <p className="text-xs text-gray-500 mt-1">BADAN KEPEGAWAIAN DAN PENGEMBANGAN SUMBER DAYA MANUSIA KOTA CIREBON</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
