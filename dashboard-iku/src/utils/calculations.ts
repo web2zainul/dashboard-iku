@@ -158,7 +158,8 @@ export function countSubKegiatanTerisi(data: IKUData[]): number {
   }
   let jumlah = 0;
   for (const items of map.values()) {
-    if (computeAggregate(items).targetTahun > 0) jumlah++;
+    const agg = computeAggregate(items);
+    if (agg.targetTahun > 0 || agg.targetAnggaran > 0) jumlah++;
   }
   return jumlah;
 }
@@ -177,7 +178,7 @@ export function calculateSubDistribution(data: IKUData[]): DistributionItem[] {
   let kurang = 0;
   for (const items of map.values()) {
     const agg = computeAggregate(items);
-    if (agg.targetTahun <= 0) continue;
+    if (agg.targetTahun <= 0 && agg.targetAnggaran <= 0) continue;
     const pct = agg.persentase;
     if (pct > 100) sangatBaik++;
     else if (pct >= 100) baik++;
