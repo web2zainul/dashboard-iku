@@ -20,7 +20,7 @@ const kpiConfig: Array<{
   { key: 'realisasiKinerja', label: 'KEGIATAN', icon: TrendingUp, color: 'from-emerald-600 to-emerald-700', textColor: 'text-emerald-100', iconBg: 'bg-white/20', dynamic: 'kegiatan' },
   { key: 'rataRataCapaian', label: 'SUB KEGIATAN', icon: BarChart3, color: 'from-blue-600 to-blue-700', textColor: 'text-blue-100', iconBg: 'bg-white/20', dynamic: 'subKegiatan' },
   { key: 'totalAnggaran', label: 'TOTAL ANGGARAN', icon: Wallet, color: 'from-purple-600 to-purple-700', textColor: 'text-purple-100', iconBg: 'bg-white/20', isRupiah: true, fixedValue: 7646183378 },
-  { key: 'realisasiAnggaran', label: 'REALISASI ANGGARAN', icon: Banknote, color: 'from-teal-600 to-teal-700', textColor: 'text-teal-100', iconBg: 'bg-white/20', isRupiah: true, fixedValue: 3697305800 },
+  { key: 'realisasiAnggaran', label: 'REALISASI ANGGARAN', icon: Banknote, color: 'from-teal-600 to-teal-700', textColor: 'text-teal-100', iconBg: 'bg-white/20', isRupiah: true, fixedValue: 4439743846 },
   { key: 'persentaseAnggaran', label: '% REALISASI ANGGARAN', icon: Percent, color: 'from-amber-500 to-orange-500', textColor: 'text-amber-100', iconBg: 'bg-white/20', suffix: '%' },
 ];
 

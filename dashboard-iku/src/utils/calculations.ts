@@ -130,7 +130,7 @@ export function calculateKPI(data: IKUData[]): KPIResult {
   const totalAnggaran = data.reduce((sum, d) => sum + d.targetAnggaran, 0);
   const realisasiAnggaran = data.reduce((sum, d) => sum + d.realisasiAnggaran, 0);
   const realisasiKinerja = rataRataCapaian;
-  return { totalIndikator, totalTarget, realisasiKinerja, rataRataCapaian, totalAnggaran, realisasiAnggaran, persentaseAnggaran: 48.35 };
+  return { totalIndikator, totalTarget, realisasiKinerja, rataRataCapaian, totalAnggaran, realisasiAnggaran, persentaseAnggaran: 58.06 };
 }
 
 export function calculateDistribution(data: IKUData[]): DistributionItem[] {

@@ -21,7 +21,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 };
 
 const TOTAL_ANGGARAN = 7646183378;
-const REALISASI_ANGGARAN = 3697305800;
+const REALISASI_ANGGARAN = 4439743846;
 
 export function BudgetComparisonChart() {
   const { state } = useDashboard();
