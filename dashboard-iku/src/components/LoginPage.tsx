@@ -25,7 +25,7 @@ export function LoginPage({ onLogin }: { onLogin: () => void }) {
           <div className="bg-[#0f2358] p-4 rounded-2xl mb-4">
             <Building2 className="w-12 h-12 text-white" />
           </div>
-          <h1 className="text-xl font-bold text-[#0f2358]">DASHBOARD IKU</h1>
+          <h1 className="text-xl font-bold text-[#0f2358]">DASHBOARD KINERJA DAN ANGGARAN</h1>
           <p className="text-xs text-gray-500 mt-1">BADAN KEPEGAWAIAN DAN PENGEMBANGAN SDM KOTA CIREBON</p>
         </div>
 
