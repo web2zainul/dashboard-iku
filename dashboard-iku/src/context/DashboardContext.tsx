@@ -35,7 +35,7 @@ const initialState: DashboardState = {
   filterSubKegiatan: 'Semua',
   currentPage: 1,
   itemsPerPage: 10,
-  dataPerDate: '30 Juni 2026',
+  dataPerDate: '31 Juli 2026',
   selectedIndicator: null,
   showImportModal: false,
 };
