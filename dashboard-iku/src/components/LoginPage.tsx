@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Building2, Lock, User, LogIn } from 'lucide-react';
+import { Lock, User, LogIn } from 'lucide-react';
 
 const VALID_USERNAME = 'prokeu1';
 const VALID_PASSWORD = 'prokeu1';
@@ -22,8 +22,12 @@ export function LoginPage({ onLogin }: { onLogin: () => void }) {
     <div className="min-h-screen bg-gradient-to-br from-[#0a1842] via-[#0f2358] to-[#152e6e] flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 animate-fade-in-up">
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="bg-[#0f2358] p-4 rounded-2xl mb-4">
-            <Building2 className="w-12 h-12 text-white" />
+          <div className="bg-white rounded-full p-3 shadow-md mb-4">
+            <img
+              src="/lambang-bkpsdm.png"
+              alt="Lambang BKPSDM"
+              className="w-20 h-20 object-contain"
+            />
           </div>
           <h1 className="text-xl font-bold text-[#0f2358]">DASHBOARD KINERJA DAN ANGGARAN</h1>
           <p className="text-xs text-gray-500 mt-1">BADAN KEPEGAWAIAN DAN PENGEMBANGAN SDM KOTA CIREBON</p>
