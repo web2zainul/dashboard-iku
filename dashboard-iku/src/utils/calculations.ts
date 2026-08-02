@@ -152,17 +152,19 @@ export function calculateSubDistribution(data: IKUData[]): DistributionItem[] {
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(d);
   }
-  const total = map.size;
   let sangatBaik = 0;
   let baik = 0;
   let kurang = 0;
   for (const items of map.values()) {
-    const pct = computeAggregate(items).persentase;
+    const agg = computeAggregate(items);
+    if (agg.targetTahun <= 0) continue;
+    const pct = agg.persentase;
     if (pct > 100) sangatBaik++;
     else if (pct >= 100) baik++;
     else kurang++;
   }
-  const pctOf = (n: number) => total > 0 ? Math.round((n / total) * 10000) / 100 : 0;
+  const totalTerisi = sangatBaik + baik + kurang;
+  const pctOf = (n: number) => totalTerisi > 0 ? Math.round((n / totalTerisi) * 10000) / 100 : 0;
   return [
     { name: '> 100% (Sangat Baik)', value: sangatBaik, percentage: pctOf(sangatBaik), color: '#10b981' },
     { name: '100% (Baik)', value: baik, percentage: pctOf(baik), color: '#3b82f6' },

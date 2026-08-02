@@ -336,7 +336,7 @@ export function IKUTable({ activeTab, onTabChange }: { activeTab: ActiveTab; onT
       result = result.filter(d => d.subKegiatan === state.filterSubKegiatan);
     }
     if (hideSubKosong) {
-      result = result.filter(d => [d.realisasiTW1, d.realisasiTW2, d.realisasiTW3, d.realisasiTW4].some(v => v != null));
+      result = result.filter(d => d.targetTahun > 0);
     }
     if (sortCol) {
       result.sort((a, b) => {
