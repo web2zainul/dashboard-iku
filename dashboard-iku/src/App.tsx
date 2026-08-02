@@ -58,7 +58,6 @@ function DashboardContent() {
 
           <footer className="text-center text-xs text-gray-400 py-4 border-t border-gray-200">
             <p>Sumber Data: Formulir Pengukuran Kinerja BKPSDM Kota Cirebon — Laporan IKU TW I dan TW II Tahun 2026</p>
-            <p className="mt-1">Keterangan: "-" = Belum Dilaksanakan</p>
             <p className="mt-1">Terakhir diperbarui: {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
           </footer>
         </main>
@@ -88,8 +87,7 @@ function DashboardContent() {
           </div>
 
           <footer className="text-center text-xs text-gray-400 py-4 border-t border-gray-200">
-            <p>Sumber Data: Evaluasi RENJA/RENSTRA Tahun 2026 – BKPSDM Kota Cirebon</p>
-            <p className="mt-1">Keterangan: "-" = Belum Dilaksanakan</p>
+            <p>Sumber Data: Evaluasi Perencanaan Tahun 2026 – BKPSDM Kota Cirebon</p>
             <p className="mt-1">Terakhir diperbarui: {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
           </footer>
         </main>
