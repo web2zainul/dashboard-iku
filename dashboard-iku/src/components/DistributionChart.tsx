@@ -25,7 +25,7 @@ export function DistributionChart() {
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 card-hover h-full">
       <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-        2. DISTRIBUSI CAPAIAN KINERJA
+        DISTRIBUSI CAPAIAN KINERJA
       </h3>
       <div className="h-52 relative">
         <ResponsiveContainer width="100%" height="100%">

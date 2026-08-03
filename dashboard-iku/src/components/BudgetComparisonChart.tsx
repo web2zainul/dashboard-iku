@@ -21,7 +21,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 };
 
 const TOTAL_ANGGARAN = 7646183378;
-const REALISASI_ANGGARAN = 4439743846;
+const REALISASI_ANGGARAN = 4442912096;
 
 export function BudgetComparisonChart() {
   const { state } = useDashboard();
@@ -38,7 +38,7 @@ export function BudgetComparisonChart() {
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 card-hover h-full">
       <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-        6. TARGET VS REALISASI ANGGARAN
+        TARGET VS REALISASI ANGGARAN
       </h3>
       <div className="text-center mb-3">
         <span className="text-xs text-gray-500">

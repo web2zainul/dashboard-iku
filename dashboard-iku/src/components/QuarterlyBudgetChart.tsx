@@ -26,7 +26,7 @@ export function QuarterlyBudgetChart() {
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 card-hover h-full">
       <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-        7. REALISASI ANGGARAN PER TRIWULAN
+        REALISASI ANGGARAN PER TRIWULAN
       </h3>
       <div className="h-52">
         <ResponsiveContainer width="100%" height="100%">
