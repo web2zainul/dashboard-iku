@@ -139,7 +139,7 @@ export function CapaianIndikatorChart() {
                 </span>
               </div>
 
-              <p className="mt-3 text-sm font-semibold text-[#1e293b] leading-snug min-h-[3.75rem] line-clamp-3">
+              <p className="mt-3 text-sm font-semibold text-[#1e293b] leading-snug">
                 {d.nama}
               </p>
 
