@@ -1,10 +1,11 @@
-import { LayoutDashboard, FileText } from 'lucide-react';
+import { LayoutDashboard, FileText, FileSignature } from 'lucide-react';
 
-export type ActiveTab = 'dashboard' | 'laporan';
+export type ActiveTab = 'dashboard' | 'laporan' | 'perjanjian';
 
 const TABS: Array<{ key: ActiveTab; label: string; icon: typeof LayoutDashboard }> = [
   { key: 'dashboard', label: 'RENJA', icon: LayoutDashboard },
   { key: 'laporan', label: 'Laporan IKU', icon: FileText },
+  { key: 'perjanjian', label: 'Perjanjian Kinerja', icon: FileSignature },
 ];
 
 export function TabNav({ active, onChange }: { active: ActiveTab; onChange: (tab: ActiveTab) => void }) {

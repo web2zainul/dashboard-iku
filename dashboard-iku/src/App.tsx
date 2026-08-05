@@ -17,6 +17,7 @@ import { DetailModal } from './components/DetailModal';
 import type { ActiveTab } from './components/TabNav';
 import { LaporanIKUTable } from './components/LaporanIKUTable';
 import { LoginPage } from './components/LoginPage';
+import { PerjanjianKinerjaTable } from './components/PerjanjianKinerjaTable';
 
 const AUTH_KEY = 'prokeu_auth';
 
@@ -45,6 +46,22 @@ function DashboardContent() {
 
   if (!isAuthed) {
     return <LoginPage onLogin={handleLogin} />;
+  }
+
+  if (activeTab === 'perjanjian') {
+    return (
+      <div className="min-h-screen bg-[#f1f5f9]">
+        <Header onLogout={handleLogout} />
+        <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
+          <PerjanjianKinerjaTable />
+
+          <footer className="text-center text-xs text-gray-400 py-4 border-t border-gray-200">
+            <p>Sumber Data: Data Pegawai BKPSDM Kota Cirebon</p>
+            <p className="mt-1">Terakhir diperbarui: {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+          </footer>
+        </main>
+      </div>
+    );
   }
 
   return (
