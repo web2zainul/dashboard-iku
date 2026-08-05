@@ -53,7 +53,7 @@ function DashboardContent() {
       <div className="min-h-screen bg-[#f1f5f9]">
         <Header onLogout={handleLogout} />
         <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
-          <PerjanjianKinerjaTable />
+          <PerjanjianKinerjaTable activeTab={activeTab} onTabChange={setActiveTab} />
 
           <footer className="text-center text-xs text-gray-400 py-4 border-t border-gray-200">
             <p>Sumber Data: Data Pegawai BKPSDM Kota Cirebon</p>

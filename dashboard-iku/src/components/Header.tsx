@@ -1,4 +1,4 @@
-import { Building2, Calendar, Filter, RotateCcw, LogOut } from 'lucide-react';
+import { Calendar, Filter, RotateCcw, LogOut } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
 import { triwulanOptions, tahunOptions } from '../utils/sampleData';
 
@@ -10,8 +10,8 @@ export function Header({ onLogout }: { onLogout: () => void }) {
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row items-center justify-between py-5 gap-4">
           <div className="flex items-center gap-4">
-            <div className="bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/20">
-              <Building2 className="w-10 h-10 text-white" />
+            <div className="bg-white/95 p-1.5 rounded-xl shadow-sm border border-white/30">
+              <img src="/lambang-bkpsdm.png" alt="Lambang BKPSDM" className="w-11 h-11 object-contain" />
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
