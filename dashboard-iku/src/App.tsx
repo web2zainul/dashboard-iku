@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { DashboardProvider } from './context/DashboardContext';
 import { LaporanProvider } from './context/LaporanIKUContext';
 import { KartuProvider } from './context/KartuIndikatorContext';
+import { PegawaiProvider } from './context/PegawaiContext';
 import { Header } from './components/Header';
 import { KPICards } from './components/KPICards';
 import { GaugeChart } from './components/GaugeChart';
@@ -120,7 +121,9 @@ function App() {
     <DashboardProvider>
       <LaporanProvider>
         <KartuProvider>
-          <DashboardContent />
+          <PegawaiProvider>
+            <DashboardContent />
+          </PegawaiProvider>
         </KartuProvider>
       </LaporanProvider>
     </DashboardProvider>

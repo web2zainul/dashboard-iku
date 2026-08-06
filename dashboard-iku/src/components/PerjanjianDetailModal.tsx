@@ -15,7 +15,7 @@ export function PerjanjianDetailModal({ pegawai, onClose }: { pegawai: Pegawai; 
         <div className="p-6 border-b border-gray-100 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-gray-800">Detail Perjanjian Kinerja</h2>
-            <p className="text-xs text-gray-500 mt-0.5">{pegawai.nama}{pegawai.nip ? ` — NIP. ${pegawai.nip}` : ''}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{pegawai.nama}{pegawai.nip ? ` — NIP ${pegawai.nip}` : ''}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
             <X className="w-5 h-5 text-gray-400" />
