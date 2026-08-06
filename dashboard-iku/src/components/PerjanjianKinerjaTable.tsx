@@ -1,16 +1,5 @@
 import { useState } from 'react';
 import { Eye, Pencil, Check, X, Plus, Trash2, Download } from 'lucide-react';
-import {
-  Document,
-  Packer,
-  Paragraph,
-  Table,
-  TableRow,
-  TableCell,
-  TextRun,
-  AlignmentType,
-  WidthType,
-} from 'docx';
 import type { Pegawai } from '../data/pegawaiBkpsdm';
 import { normalizeNip } from '../data/pegawaiBkpsdm';
 import { usePegawai, pegawaiToDb, pegawaiFromDb } from '../context/PegawaiContext';
@@ -19,66 +8,12 @@ import { PerjanjianDetailModal } from './PerjanjianDetailModal';
 import { Notification } from './Notification';
 import { TabNav, type ActiveTab } from './TabNav';
 
-async function downloadDocx(pegawaiList: Pegawai[]) {
-  const header = (text: string) =>
-    new TableCell({
-      shading: { fill: '0F2358' },
-      margins: { top: 100, bottom: 100, left: 100, right: 100 },
-      children: [new Paragraph({ children: [new TextRun({ text, bold: true, color: 'FFFFFF', size: 18 })] })],
-    });
-
-  const cell = (text: string, bold = false) =>
-    new TableCell({
-      margins: { top: 100, bottom: 100, left: 100, right: 100 },
-      children: [new Paragraph({ children: [new TextRun({ text: text || '-', bold, size: 18 })] })],
-    });
-
-  const rows: TableRow[] = [
-    new TableRow({ tableHeader: true, children: [header('No'), header('Nama'), header('NIP'), header('Jabatan')] }),
-    ...pegawaiList.map(p =>
-      new TableRow({ children: [cell(String(p.no)), cell(p.nama, true), cell(p.nip), cell(p.jabatan)] })
-    ),
-  ];
-
-  const doc = new Document({
-    sections: [
-      {
-        children: [
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: 'PERJANJIAN KINERJA PEGAWAI', bold: true, size: 32 })],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: 'BKPSDM KOTA CIREBON', bold: true, size: 28 })],
-          }),
-          new Paragraph({ text: '', spacing: { after: 200 } }),
-          new Paragraph({ text: `Jumlah Pegawai: ${pegawaiList.length}`, spacing: { after: 200 } }),
-          new Table({
-            width: { size: 100, type: WidthType.PERCENTAGE },
-            rows,
-          }),
-        ],
-      },
-    ],
-  });
-
-  const blob = await Packer.toBlob(doc);
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'Perjanjian-Kinerja-Pegawai.docx';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 export function PerjanjianKinerjaTable({ activeTab, onTabChange }: { activeTab: ActiveTab; onTabChange: (tab: ActiveTab) => void }) {
   const { rows, dispatch } = usePegawai();
   const [selected, setSelected] = useState<Pegawai | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<{ nama: string; nip: string; jabatan: string }>({ nama: '', nip: '', jabatan: '' });
   const [notif, setNotif] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const [downloading, setDownloading] = useState(false);
 
   const startEdit = (p: Pegawai) => {
     setEditingId(p.no);
@@ -140,18 +75,6 @@ export function PerjanjianKinerjaTable({ activeTab, onTabChange }: { activeTab: 
     if (editingId === p.no) cancelEdit();
   };
 
-  const handleDownload = async () => {
-    try {
-      setDownloading(true);
-      await downloadDocx(rows);
-    } catch (err) {
-      console.error('DOCX download error:', err);
-      setNotif({ type: 'error', message: 'Gagal membuat dokumen' });
-    } finally {
-      setDownloading(false);
-    }
-  };
-
   const inputClass = "w-full px-1.5 py-1 text-[10px] border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none bg-blue-50/60";
 
   return (
@@ -168,13 +91,6 @@ export function PerjanjianKinerjaTable({ activeTab, onTabChange }: { activeTab: 
         <div className="flex flex-wrap items-center gap-1.5">
           <TabNav active={activeTab} onChange={onTabChange} />
           <span className="w-px h-6 bg-gray-200" />
-          <button
-            onClick={handleDownload}
-            disabled={downloading}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-all flex items-center gap-1 disabled:opacity-50"
-          >
-            <Download className="w-3 h-3" /> {downloading ? 'Membuat...' : 'Download Dokumen'}
-          </button>
           <button
             onClick={addPegawai}
             className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-all flex items-center gap-1"
@@ -234,6 +150,9 @@ export function PerjanjianKinerjaTable({ activeTab, onTabChange }: { activeTab: 
                           </button>
                           <button onClick={() => startEdit(p)} className="p-1.5 hover:bg-yellow-50 rounded transition-colors" title="Edit">
                             <Pencil className="w-4 h-4 text-yellow-500" />
+                          </button>
+                          <button className="p-1.5 hover:bg-emerald-50 rounded transition-colors" title="Download Dokumen (segera)">
+                            <Download className="w-4 h-4 text-emerald-600" />
                           </button>
                           <button onClick={() => deletePegawai(p)} className="p-1.5 hover:bg-red-50 rounded transition-colors" title="Hapus">
                             <Trash2 className="w-4 h-4 text-red-500" />

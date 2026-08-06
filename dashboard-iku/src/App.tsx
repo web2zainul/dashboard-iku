@@ -41,7 +41,7 @@ function DashboardContent() {
   useEffect(() => {
     if (prevTab.current === activeTab) return;
     prevTab.current = activeTab;
-    const targetId = activeTab === 'laporan' ? 'laporan-iku-table' : 'daftar-realisasi';
+    const targetId = activeTab === 'laporan' ? 'laporan-iku-table' : activeTab === 'perjanjian' ? 'perjanjian-kinerja' : 'daftar-realisasi';
     document.getElementById(targetId)?.scrollIntoView({ behavior: 'auto', block: 'start' });
   }, [activeTab]);
 
